@@ -1,0 +1,15 @@
+{
+  "name": "RoteiroNutri",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=web",
+    "dev:mobile": "turbo dev --filter=mobile",
+    "dev:backend": "turbo dev --filter=backend",
+    "build": "turbo build"
+  },
+  "devDependencies": {
+    "turbo": "latest"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
