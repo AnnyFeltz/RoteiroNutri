@@ -1,2 +1,4 @@
-export * from './schemas.js';
-export * from './utils.js';
+module.exports = {
+  ...require('./schemas'),
+  ...require('./utils'),
+};

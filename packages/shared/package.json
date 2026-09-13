@@ -2,5 +2,7 @@
   "name": "@RoteiroNutri/shared",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module"
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
 }
