@@ -3,7 +3,9 @@ import { Alert, Share, View } from 'react-native'
 import { useMutation } from '@tanstack/react-query'
 import { Shield, KeyRound, Share2, Trash2 } from 'lucide-react-native'
 import { Botao, Cabecalho, Campo, Card, Tela, Texto, estilos } from '../../../components/ui'
+import { alterarSenhaSchema } from '@RoteiroNutri/shared'
 import { api } from '../../../lib/api'
+import { validar } from '../../../lib/validacao'
 import { usePerfil, useEvolucao } from '../../../lib/consultas'
 import { cores } from '../../../lib/tema'
 
@@ -15,7 +17,7 @@ export default function Privacidade() {
   const [mensagem, setMensagem] = useState(null)
 
   const alterar = useMutation({
-    mutationFn: () => api('/app/senha', { method: 'PUT', body: { senhaAtual: senhas.senhaAtual, novaSenha: senhas.novaSenha } }),
+    mutationFn: (dados) => api('/app/senha', { method: 'PUT', body: dados }),
     onSuccess: () => {
       setSenhas({ senhaAtual: '', novaSenha: '', confirmar: '' })
       setMensagem({ ok: true, texto: 'Senha alterada com sucesso.' })
@@ -24,9 +26,10 @@ export default function Privacidade() {
   })
 
   const trocarSenha = () => {
-    if (senhas.novaSenha.length < 6) return setMensagem({ ok: false, texto: 'A nova senha deve ter ao menos 6 caracteres.' })
+    const { dados, erro } = validar(alterarSenhaSchema, { senhaAtual: senhas.senhaAtual, novaSenha: senhas.novaSenha })
+    if (erro) return setMensagem({ ok: false, texto: erro })
     if (senhas.novaSenha !== senhas.confirmar) return setMensagem({ ok: false, texto: 'A confirmação não confere.' })
-    alterar.mutate()
+    alterar.mutate(dados)
   }
 
   // LGPD: o paciente pode obter uma cópia dos próprios dados

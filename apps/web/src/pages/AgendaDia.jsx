@@ -17,11 +17,11 @@ export default function AgendaDia() {
 
   if (!valida) {
     return (
-      <div className="space-y-4">
-        <Link to="/nutri/agenda" className="text-sm text-primary hover:underline inline-flex items-center gap-1">
-          <ArrowLeft className="h-4 w-4" /> Voltar para a agenda
+      <div className="pilha">
+        <Link to="/nutri/agenda" className="link linha-sm">
+          <ArrowLeft size={16} /> Voltar para a agenda
         </Link>
-        <p className="text-muted-foreground">Data inválida.</p>
+        <p className="texto-suave">Data inválida.</p>
       </div>
     )
   }
@@ -34,25 +34,25 @@ export default function AgendaDia() {
   const hoje = isoLocal()
 
   return (
-    <div className="space-y-6">
+    <div className="pagina">
       <div>
-        <Link to="/nutri/agenda" className="text-sm text-primary hover:underline inline-flex items-center gap-1 mb-3">
-          <ArrowLeft className="h-4 w-4" /> Voltar para o calendário
+        <Link to="/nutri/agenda" className="link linha-sm" style={{ marginBottom: 12, display: 'inline-flex' }}>
+          <ArrowLeft size={16} /> Voltar para o calendário
         </Link>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="cabecalho-pagina" style={{ alignItems: 'center' }}>
           <div>
-            <h1 className="text-3xl font-semibold flex items-center gap-3">
-              <CalendarDays className="h-7 w-7 text-primary" />
+            <h1 className="titulo-pagina titulo-icone">
+              <CalendarDays size={28} />
               {dataExtenso(data)}
             </h1>
-            <p className="text-muted-foreground mt-1">{diaSemana(data)}</p>
+            <p className="subtitulo-pagina">{diaSemana(data)}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="acoes">
             <Button variant="outline" size="sm" onClick={() => mudar(-1)}>
-              <ChevronLeft className="h-4 w-4" /> Dia anterior
+              <ChevronLeft /> Dia anterior
             </Button>
             <Button variant="outline" size="sm" onClick={() => mudar(1)}>
-              Próximo dia <ChevronRight className="h-4 w-4" />
+              Próximo dia <ChevronRight />
             </Button>
           </div>
         </div>
@@ -61,27 +61,31 @@ export default function AgendaDia() {
       {isLoading ? (
         <Carregando />
       ) : consultas.length === 0 ? (
-        <Card className="p-10 text-center">
-          <p className="text-muted-foreground">Nenhuma consulta marcada para este dia.</p>
+        <Card className="card-vazio">
+          <p>Nenhuma consulta marcada para este dia.</p>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="pilha">
           {consultas.map((c) => (
-            <Card key={c.id} className="p-5 flex flex-wrap items-center gap-4">
-              <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} className="h-12 w-12" />
-              <div className="flex-1 min-w-[200px]">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold font-sans">{c.paciente.nome}</h3>
+            <Card key={c.id} className="linha linha-quebra" style={{ gap: 16 }}>
+              <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} tamanho="md" />
+              <div className="expandir" style={{ minWidth: 200 }}>
+                <div className="linha-sm linha-quebra">
+                  <h3 className="texto-forte" style={{ fontFamily: 'var(--fonte-texto)', fontSize: 15 }}>
+                    {c.paciente.nome}
+                  </h3>
                   <Badge variant="outline">{c.tipo}</Badge>
                   {data >= hoje ? <Badge>Agendada</Badge> : <Badge variant="muted">Realizada</Badge>}
                   {!c.paciente.ativo && <Badge variant="outline">Paciente inativo</Badge>}
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">Horário: {c.horario}</p>
-                {c.observacoes && <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{c.observacoes}</p>}
+                <p className="texto-pequeno texto-suave" style={{ marginTop: 2 }}>
+                  Horário: {c.horario}
+                </p>
+                {c.observacoes && <p className="texto-suave resumo-2-linhas" style={{ marginTop: 8 }}>{c.observacoes}</p>}
               </div>
               <Link to={`/nutri/pacientes/${c.paciente.id}`}>
                 <Button variant="outline" size="sm">
-                  <User className="h-4 w-4" /> Ver paciente
+                  <User /> Ver paciente
                 </Button>
               </Link>
             </Card>

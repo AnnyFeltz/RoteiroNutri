@@ -7,7 +7,9 @@ import { api } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { sinal } from '../lib/format'
 
-const CORES_ADESAO = ['var(--leaf)', 'var(--chart-3)', 'var(--terracotta)', 'var(--destructive)']
+const CORES_ADESAO = ['var(--folha)', 'var(--grafico-carbo)', 'var(--terracota)', 'var(--perigo)']
+const TOOLTIP = { background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 8 }
+const EIXO = { fontSize: 11, fill: 'var(--texto-suave)' }
 
 // RF09 - Dashboard com agenda do dia e métricas rápidas
 export default function Dashboard() {
@@ -24,112 +26,111 @@ export default function Dashboard() {
   const pizza = temAdesao ? d.distribuicaoAdesao : [{ nome: 'Sem dados', pct: 100 }]
 
   return (
-    <div className="space-y-6">
+    <div className="pagina">
       <div>
-        <h1 className="text-3xl font-semibold">Bem-vinda, {nutricionista.nome}! 👋</h1>
-        <p className="text-muted-foreground mt-1">Aqui está um resumo do seu consultório.</p>
+        <h1 className="titulo-pagina">Bem-vinda, {nutricionista.nome}! 👋</h1>
+        <p className="subtitulo-pagina">Aqui está um resumo do seu consultório.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grade grade-2-md grade-4-lg">
         <Kpi icon={Users} label="Pacientes ativos" value={d.pacientesAtivos} delta={`+${d.novosPacientesMes} este mês`} />
         <Kpi
           icon={CalendarDays}
           label="Consultas hoje"
           value={d.consultasHoje.length}
           delta={d.proximaConsultaHoje ? `próxima às ${d.proximaConsultaHoje}` : `${d.consultasMes} no mês`}
-          tone="terracotta"
+          tom="terracota"
         />
         <Kpi icon={Apple} label="Planos alimentares ativos" value={d.planosAtivos} delta={`+${d.planosCriadosMes} versões este mês`} />
-        <Kpi icon={TrendingUp} label="Taxa de adesão (30 dias)" value={temAdesao ? `${d.taxaAdesao}%` : '—'} delta="refeições marcadas no app" tone="leaf" />
+        <Kpi icon={TrendingUp} label="Taxa de adesão (30 dias)" value={temAdesao ? `${d.taxaAdesao}%` : '—'} delta="refeições marcadas no app" tom="primaria" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="p-5">
-          <h3 className="font-display font-semibold text-lg mb-4">Consultas de hoje</h3>
+      <div className="grade grade-3-lg">
+        <Card>
+          <h3 className="card-titulo">Consultas de hoje</h3>
           {d.consultasHoje.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma consulta marcada para hoje.</p>
+            <p className="texto-suave">Nenhuma consulta marcada para hoje.</p>
           ) : (
-            <ul className="space-y-3">
+            <ul className="pilha">
               {d.consultasHoje.map((c) => (
-                <li key={c.id} className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm font-mono text-muted-foreground w-12">{c.horario}</span>
-                    <Link to={`/nutri/pacientes/${c.paciente.id}`} className="font-medium text-sm hover:text-primary truncate">
+                <li key={c.id} className="linha entre">
+                  <div className="linha expandir">
+                    <span className="mono texto-suave" style={{ width: 48 }}>
+                      {c.horario}
+                    </span>
+                    <Link to={`/nutri/pacientes/${c.paciente.id}`} className="texto-medio cortar link-texto">
                       {c.paciente.nome}
                     </Link>
                   </div>
-                  <Badge variant="outline" className={c.tipo === 'Avaliação' ? 'border-terracotta text-terracotta' : 'border-primary text-primary'}>
-                    {c.tipo}
-                  </Badge>
+                  <Badge variant={c.tipo === 'Avaliação' ? 'terracota' : 'primaria'}>{c.tipo}</Badge>
                 </li>
               ))}
             </ul>
           )}
-          <Link to="/nutri/agenda" className="block text-center text-sm text-primary hover:underline mt-5 pt-4 border-t border-border">
+          <Link to="/nutri/agenda" className="card-rodape-link">
             Ver agenda completa
           </Link>
         </Card>
 
-        <Card className="p-5">
-          <h3 className="font-display font-semibold text-lg mb-1">Adesão dos pacientes</h3>
-          <p className="text-xs text-muted-foreground mb-2">Últimos 30 dias · pacientes com plano</p>
-          <div className="relative h-48">
+        <Card>
+          <h3 className="titulo-secao">Adesão dos pacientes</h3>
+          <p className="texto-pequeno texto-suave" style={{ marginBottom: 8 }}>
+            Últimos 30 dias · pacientes com plano
+          </p>
+          <div className="grafico" style={{ height: 192 }}>
             <ResponsiveContainer>
               <PieChart>
-                <Pie startAngle={90} endAngle={-270} data={pizza} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={temAdesao ? 2 : 0} dataKey="pct" stroke="none">
+                <Pie data={pizza} startAngle={90} endAngle={-270} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={temAdesao ? 2 : 0} dataKey="pct" stroke="none">
                   {pizza.map((_, i) => (
-                    <Cell key={i} fill={temAdesao ? CORES_ADESAO[i] : 'var(--muted)'} />
+                    <Cell key={i} fill={temAdesao ? CORES_ADESAO[i] : 'var(--suave)'} />
                   ))}
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <p className="text-3xl font-display font-semibold text-primary">{temAdesao ? `${d.taxaAdesao}%` : '—'}</p>
-              <p className="text-xs text-muted-foreground">Adesão geral</p>
+            <div className="grafico-centro">
+              <p className="numero-medio cor-primaria">{temAdesao ? `${d.taxaAdesao}%` : '—'}</p>
+              <p className="texto-pequeno texto-suave">Adesão geral</p>
             </div>
           </div>
-          <ul className="mt-3 space-y-1.5 text-xs">
+          <ul className="legenda" style={{ marginTop: 12 }}>
             {d.distribuicaoAdesao.map((a, i) => (
-              <li key={a.nome} className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: CORES_ADESAO[i] }} />
+              <li key={a.nome}>
+                <span className="linha-sm">
+                  <span className="ponto" style={{ background: CORES_ADESAO[i] }} />
                   {a.nome}
                 </span>
-                <span className="font-medium">
-                  {a.pct}% <span className="text-muted-foreground font-normal">({a.total})</span>
+                <span className="texto-medio">
+                  {a.pct}% <span className="texto-suave">({a.total})</span>
                 </span>
               </li>
             ))}
           </ul>
         </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display font-semibold text-lg">Evolução geral (média)</h3>
-            <span className="text-xs text-muted-foreground">Últimos 6 meses</span>
+        <Card>
+          <div className="card-cabecalho">
+            <h3>Evolução geral (média)</h3>
+            <span className="texto-pequeno texto-suave">Últimos 6 meses</span>
           </div>
-          <div className="h-44">
+          <div style={{ height: 176 }}>
             <ResponsiveContainer>
               <LineChart data={d.evolucaoMensal} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="mes" tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  formatter={(v) => [`${sinal(v)} kg`, 'Variação média']}
-                  contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8 }}
-                />
-                <Line type="monotone" dataKey="variacaoMediaKg" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 3, fill: 'var(--primary)' }} connectNulls />
+                <CartesianGrid stroke="var(--borda)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="mes" tick={EIXO} axisLine={false} tickLine={false} />
+                <YAxis tick={EIXO} axisLine={false} tickLine={false} />
+                <Tooltip formatter={(v) => [`${sinal(v)} kg`, 'Variação média']} contentStyle={TOOLTIP} />
+                <Line type="monotone" dataKey="variacaoMediaKg" stroke="var(--primaria)" strokeWidth={2.5} dot={{ r: 3, fill: 'var(--primaria)' }} connectNulls />
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="grid grid-cols-2 gap-4 pt-4 mt-2 border-t border-border">
+          <div className="grade grade-2 separador-topo" style={{ marginTop: 8 }}>
             <div>
-              <p className="text-xl font-display font-semibold text-leaf">-{d.perdaMediaKg.toLocaleString('pt-BR')} kg</p>
-              <p className="text-xs text-muted-foreground">Perda média (quem emagreceu)</p>
+              <p className="numero-pequeno cor-folha">-{d.perdaMediaKg.toLocaleString('pt-BR')} kg</p>
+              <p className="texto-pequeno texto-suave">Perda média (quem emagreceu)</p>
             </div>
             <div>
-              <p className="text-xl font-display font-semibold text-terracotta">+{d.ganhoMedioKg.toLocaleString('pt-BR')} kg</p>
-              <p className="text-xs text-muted-foreground">Ganho médio (quem ganhou)</p>
+              <p className="numero-pequeno cor-terracota">+{d.ganhoMedioKg.toLocaleString('pt-BR')} kg</p>
+              <p className="texto-pequeno texto-suave">Ganho médio (quem ganhou)</p>
             </div>
           </div>
         </Card>
@@ -138,21 +139,22 @@ export default function Dashboard() {
   )
 }
 
-function Kpi({ icon: Icon, label, value, delta, tone = 'default' }) {
-  const cor = tone === 'leaf' ? 'bg-primary/10 text-primary' : tone === 'terracotta' ? 'bg-terracotta/10 text-terracotta' : 'bg-muted text-muted-foreground'
+function Kpi({ icon: Icon, label, value, delta, tom }) {
   return (
-    <Card className="p-5">
-      <div className="flex items-start justify-between">
+    <Card>
+      <div className="linha entre alinhar-topo">
         <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="text-4xl font-display font-semibold mt-2">{value}</p>
+          <p className="texto-suave">{label}</p>
+          <p className="numero-grande" style={{ marginTop: 8 }}>
+            {value}
+          </p>
         </div>
-        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${cor}`}>
-          <Icon className="h-5 w-5" />
+        <div className={`icone-caixa ${tom ? `icone-caixa-${tom}` : ''}`}>
+          <Icon />
         </div>
       </div>
-      <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
-        <ArrowUp className="h-3 w-3 text-leaf" /> {delta}
+      <p className="kpi-delta">
+        <ArrowUp /> {delta}
       </p>
     </Card>
   )

@@ -63,38 +63,35 @@ export default function Pacientes() {
   })
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="pagina">
+      <div className="cabecalho-pagina">
         <div>
-          <h1 className="text-3xl font-semibold">Pacientes</h1>
-          <p className="text-muted-foreground mt-1">Gerencie seus pacientes e seus planos.</p>
+          <h1 className="titulo-pagina">Pacientes</h1>
+          <p className="subtitulo-pagina">Gerencie seus pacientes e seus planos.</p>
         </div>
         <Button onClick={() => setNovoAberto(true)}>
-          <Plus className="h-4 w-4" /> Novo paciente
+          <Plus /> Novo paciente
         </Button>
       </div>
 
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={busca}
-              onChange={(e) => setParams(e.target.value ? { busca: e.target.value } : {}, { replace: true })}
-              placeholder="Buscar por nome ou e-mail..."
-              className="pl-9 bg-background"
-            />
-          </div>
-          <Segmented
-            value={filtro}
-            onChange={setFiltro}
-            options={[
-              { value: 'ativos', label: 'Ativos' },
-              { value: 'inativos', label: 'Inativos' },
-              { value: 'todos', label: 'Todos' },
-            ]}
+      <Card className="card-compacto filtros">
+        <div className="busca">
+          <Search />
+          <Input
+            value={busca}
+            onChange={(e) => setParams(e.target.value ? { busca: e.target.value } : {}, { replace: true })}
+            placeholder="Buscar por nome ou e-mail..."
           />
         </div>
+        <Segmented
+          value={filtro}
+          onChange={setFiltro}
+          options={[
+            { value: 'ativos', label: 'Ativos' },
+            { value: 'inativos', label: 'Inativos' },
+            { value: 'todos', label: 'Todos' },
+          ]}
+        />
       </Card>
 
       {isLoading ? (
@@ -102,52 +99,50 @@ export default function Pacientes() {
       ) : error ? (
         <ErroCarregamento erro={error} onTentar={refetch} />
       ) : (
-        <Card className="overflow-x-auto">
-          <table className="w-full min-w-[820px]">
-            <thead className="border-b border-border bg-muted/30">
-              <tr className="text-left text-xs font-medium text-muted-foreground">
-                <th className="px-5 py-3">Paciente</th>
-                <th className="px-3 py-3">Objetivo</th>
-                <th className="px-3 py-3">IMC</th>
-                <th className="px-3 py-3">Próxima consulta</th>
-                <th className="px-3 py-3">Status</th>
-                <th className="px-3 py-3 text-right">Ações</th>
+        <Card className="card-sem-espaco rolagem-x">
+          <table className="tabela" style={{ minWidth: 860 }}>
+            <thead>
+              <tr>
+                <th>Paciente</th>
+                <th>Objetivo</th>
+                <th>IMC</th>
+                <th>Próxima consulta</th>
+                <th>Status</th>
+                <th className="direita">Ações</th>
               </tr>
             </thead>
             <tbody>
               {pacientes.map((p) => {
                 const valorImc = imc(p.pesoAtualKg, p.alturaCm)
                 return (
-                  <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition">
-                    <td className="px-5 py-4">
-                      <Link to={`/nutri/pacientes/${p.id}`} className="flex items-center gap-3 group">
+                  <tr key={p.id}>
+                    <td>
+                      <Link to={`/nutri/pacientes/${p.id}`} className="linha link-texto">
                         <Avatar nome={p.nome} cor={p.avatarCor} />
                         <div>
-                          <p className="font-medium text-sm group-hover:text-primary">{p.nome}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="texto-medio">{p.nome}</p>
+                          <p className="texto-pequeno texto-suave">
                             {p.idade ? `${p.idade} anos · ` : ''}
                             {p.email}
                           </p>
                         </div>
                       </Link>
                     </td>
-                    <td className="px-3 py-4 text-sm">{objetivoLabel(p.objetivo)}</td>
-                    <td className="px-3 py-4 text-sm font-mono">{valorImc ? valorImc.toFixed(1) : '—'}</td>
-                    <td className="px-3 py-4 text-sm">
-                      {p.proximaConsulta ? `${dataBR(p.proximaConsulta.data)} · ${p.proximaConsulta.horario}` : '—'}
-                    </td>
-                    <td className="px-3 py-4">{p.ativo ? <Badge>Ativo</Badge> : <Badge variant="outline" className="text-muted-foreground">Inativo</Badge>}</td>
-                    <td className="px-3 py-4 text-right">
-                      <div className="flex justify-end gap-2">
+                    <td>{objetivoLabel(p.objetivo)}</td>
+                    <td className="mono">{valorImc ? valorImc.toFixed(1) : '—'}</td>
+                    <td>{p.proximaConsulta ? `${dataBR(p.proximaConsulta.data)} · ${p.proximaConsulta.horario}` : '—'}</td>
+                    <td>{p.ativo ? <Badge>Ativo</Badge> : <Badge variant="muted">Inativo</Badge>}</td>
+                    <td>
+                      <div className="acoes" style={{ justifyContent: 'flex-end' }}>
                         <Link to={`/nutri/pacientes/${p.id}/ficha`}>
                           <Button variant="outline" size="sm">
-                            <FileText className="h-3.5 w-3.5" /> Ficha
+                            <FileText /> Ficha
                           </Button>
                         </Link>
                         {p.ativo && (
                           <Link to={p.planoAtivo ? `/nutri/pacientes/${p.id}/plano/${p.planoAtivo.id}` : `/nutri/pacientes/${p.id}/plano/novo`}>
-                            <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10">
-                              <Apple className="h-3.5 w-3.5" /> Plano
+                            <Button variant="outline" size="sm" className="btn-primaria-suave">
+                              <Apple /> Plano
                             </Button>
                           </Link>
                         )}
@@ -157,24 +152,18 @@ export default function Pacientes() {
                           </Button>
                         </Link>
                         {p.ativo ? (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            title="Desativar paciente"
-                            onClick={() => setDesativando(p)}
-                          >
-                            <UserX className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="btn-acao-perigo" title="Desativar paciente" onClick={() => setDesativando(p)}>
+                            <UserX />
                           </Button>
                         ) : (
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-primary/40 text-primary hover:bg-primary/10"
+                            className="btn-primaria-suave"
                             loading={reativar.isPending && reativar.variables?.id === p.id}
                             onClick={() => reativar.mutate(p)}
                           >
-                            <RotateCcw className="h-3.5 w-3.5" /> Reativar
+                            <RotateCcw /> Reativar
                           </Button>
                         )}
                       </div>
@@ -184,7 +173,7 @@ export default function Pacientes() {
               })}
               {pacientes.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-sm text-muted-foreground">
+                  <td colSpan={6} className="tabela-vazia">
                     Nenhum paciente encontrado.
                   </td>
                 </tr>
@@ -194,7 +183,7 @@ export default function Pacientes() {
         </Card>
       )}
 
-      <Modal open={novoAberto} onClose={() => setNovoAberto(false)} title="Cadastrar paciente" className="max-w-2xl">
+      <Modal open={novoAberto} onClose={() => setNovoAberto(false)} title="Cadastrar paciente" largo>
         <PacienteForm onSubmit={(d) => cadastrar.mutate(d)} onCancel={() => setNovoAberto(false)} carregando={cadastrar.isPending} />
       </Modal>
 

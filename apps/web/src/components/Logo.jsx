@@ -1,10 +1,9 @@
 import logoSrc from '../assets/logo-roteiro-nutri.png'
 
-export function Logo({ className = 'h-10 w-auto', variant = 'default' }) {
-  const claro = variant === 'light'
+export function Logo({ altura = 40, variant = 'default' }) {
   return (
-    <span className={`inline-flex items-center justify-center rounded-xl overflow-hidden ${claro ? 'bg-white/95 p-1.5 shadow-sm' : ''}`}>
-      <img src={logoSrc} alt="Roteiro Nutri" className={`${className} object-contain block`} />
+    <span className={`logo ${variant === 'light' ? 'logo-clara' : ''}`}>
+      <img src={logoSrc} alt="Roteiro Nutri" style={{ height: altura }} />
     </span>
   )
 }

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { twMerge } from 'tailwind-merge'
 import { api } from './api'
 
 /** Debounce simples para não consultar a API a cada tecla. */
@@ -17,7 +16,7 @@ export function useCategoriasTaco() {
   return useQuery({ queryKey: ['alimentos', 'categorias'], queryFn: () => api('/alimentos/categorias'), staleTime: Infinity })
 }
 
-// junta classes do Tailwind resolvendo conflitos (ex: "w-full" + "w-20" => "w-20")
+// junta nomes de classes CSS ignorando os vazios: cn('btn', ativo && 'btn-ativo')
 export function cn(...classes) {
-  return twMerge(classes.filter(Boolean).join(' '))
+  return classes.filter(Boolean).join(' ')
 }

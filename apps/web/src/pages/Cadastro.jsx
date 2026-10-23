@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { cadastrarNutricionistaSchema } from '@RoteiroNutri/shared'
 import { AuthLayout } from '../components/AuthLayout'
 import { Button, Field, Input } from '../components/ui'
 import { useAuth } from '../lib/auth'
+import { validar } from '../lib/validacao'
 
 // RF01 - Cadastrar nutricionista
 export default function Cadastro() {
   const { cadastrar, token } = useAuth()
   const nav = useNavigate()
   const [form, setForm] = useState({ nome: '', email: '', crn: '', senha: '' })
+  const [erros, setErros] = useState({})
   const [carregando, setCarregando] = useState(false)
 
   if (token) return <Navigate to="/nutri" replace />
@@ -17,10 +20,11 @@ export default function Cadastro() {
 
   const enviar = async (e) => {
     e.preventDefault()
-    if (form.senha.length < 6) return toast.error('A senha deve ter ao menos 6 caracteres')
+    const dados = validar(cadastrarNutricionistaSchema, form, setErros)
+    if (!dados) return
     setCarregando(true)
     try {
-      await cadastrar(form)
+      await cadastrar(dados)
       toast.success('Cadastro realizado!')
       nav('/nutri', { replace: true })
     } catch (err) {
@@ -32,21 +36,27 @@ export default function Cadastro() {
 
   return (
     <AuthLayout>
-      <h1 className="text-3xl font-semibold">Crie sua conta</h1>
-      <p className="text-muted-foreground mt-2 text-sm">Comece a organizar seu consultório hoje.</p>
-      <form onSubmit={enviar} className="mt-8 space-y-4">
-        <Field label="Nome completo">{(id) => <Input id={id} required value={form.nome} onChange={set('nome')} placeholder="Dra. Caroline Madera" />}</Field>
-        <Field label="CRN">{(id) => <Input id={id} required value={form.crn} onChange={set('crn')} placeholder="CRN-8 12345" />}</Field>
-        <Field label="E-mail profissional">{(id) => <Input id={id} type="email" required value={form.email} onChange={set('email')} autoComplete="email" />}</Field>
-        <Field label="Senha" hint="Mínimo de 6 caracteres. Armazenada com hash bcrypt.">
-          {(id) => <Input id={id} type="password" required value={form.senha} onChange={set('senha')} autoComplete="new-password" />}
+      <h1>Crie sua conta</h1>
+      <p className="subtitulo-pagina">Comece a organizar seu consultório hoje.</p>
+      <form onSubmit={enviar} noValidate>
+        <Field label="Nome completo" erro={erros.nome}>
+          {(id) => <Input id={id} value={form.nome} onChange={set('nome')} placeholder="Dra. Caroline Madera" erro={erros.nome} />}
         </Field>
-        <Button type="submit" loading={carregando} className="w-full">
+        <Field label="CRN" erro={erros.crn}>
+          {(id) => <Input id={id} value={form.crn} onChange={set('crn')} placeholder="CRN-8 12345" erro={erros.crn} />}
+        </Field>
+        <Field label="E-mail profissional" erro={erros.email}>
+          {(id) => <Input id={id} type="email" value={form.email} onChange={set('email')} autoComplete="email" erro={erros.email} />}
+        </Field>
+        <Field label="Senha" hint="Mínimo de 6 caracteres. Armazenada com hash bcrypt." erro={erros.senha}>
+          {(id) => <Input id={id} type="password" value={form.senha} onChange={set('senha')} autoComplete="new-password" erro={erros.senha} />}
+        </Field>
+        <Button type="submit" loading={carregando} className="btn-bloco">
           {carregando ? 'Criando conta...' : 'Criar conta'}
         </Button>
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="centro texto-suave">
           Já tem conta?{' '}
-          <Link to="/login" className="text-primary font-medium hover:underline">
+          <Link to="/login" className="link">
             Entrar
           </Link>
         </p>

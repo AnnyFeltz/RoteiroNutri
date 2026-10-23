@@ -3,7 +3,9 @@ import { View } from 'react-native'
 import { CheckCircle2, Mail } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 import { Botao, Cabecalho, Campo, Card, Tela, Texto } from '../components/ui'
+import { solicitarRecuperacaoSenhaSchema } from '@RoteiroNutri/shared'
 import { api } from '../lib/api'
+import { validar } from '../lib/validacao'
 import { cores } from '../lib/tema'
 
 // RN09 - O paciente pede uma nova senha; o nutricionista aprova e ela chega por e-mail
@@ -16,9 +18,11 @@ export default function EsqueciSenha() {
 
   const enviar = async () => {
     setErro('')
+    const { dados, erro: invalido } = validar(solicitarRecuperacaoSenhaSchema, { email })
+    if (invalido) return setErro(invalido)
     setCarregando(true)
     try {
-      await api('/auth/pacientes/solicitar-senha', { method: 'POST', body: { email: email.trim() } })
+      await api('/auth/pacientes/solicitar-senha', { method: 'POST', body: dados })
       setEnviado(true)
     } catch (e) {
       setErro(e.message)

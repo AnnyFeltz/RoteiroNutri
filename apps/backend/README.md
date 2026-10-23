@@ -30,7 +30,7 @@ src/
    ```bash
    cd apps/backend
    npm run db:create      # se o banco ainda não existir
-   npm run db:setup       # migrations + 596 alimentos da TACO
+   npm run db:setup       # migrations + 597 alimentos da TACO
    npm run db:seed:demo   # (opcional) nutricionista e pacientes de demonstração
    ```
 

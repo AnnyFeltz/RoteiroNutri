@@ -56,13 +56,13 @@ export default function App() {
 
 function NaoEncontrado() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold">404</h1>
-        <h2 className="mt-4 text-xl font-semibold">Página não encontrada</h2>
-        <p className="mt-2 text-sm text-muted-foreground">A página que você procura não existe ou foi movida.</p>
+    <div className="nao-encontrado">
+      <div>
+        <h1>404</h1>
+        <h2>Página não encontrada</h2>
+        <p>A página que você procura não existe ou foi movida.</p>
         <Link to="/">
-          <Button className="mt-6">Voltar ao início</Button>
+          <Button>Voltar ao início</Button>
         </Link>
       </div>
     </div>

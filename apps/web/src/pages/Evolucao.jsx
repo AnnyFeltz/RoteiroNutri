@@ -8,12 +8,12 @@ import { Avatar, Badge, Card, Carregando, ErroCarregamento } from '../components
 import { api } from '../lib/api'
 import { mesCurto, objetivoLabel, sinal } from '../lib/format'
 
-const CORES = ['var(--leaf)', 'var(--terracotta)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)', 'var(--primary)']
+const CORES = ['var(--folha)', 'var(--terracota)', 'var(--grafico-carbo)', 'var(--grafico-4)', 'var(--grafico-5)', 'var(--primaria)']
 
 function iconeVariacao(delta) {
-  if (delta < -0.1) return { Icon: TrendingDown, cor: 'text-leaf' }
-  if (delta > 0.1) return { Icon: TrendingUp, cor: 'text-terracotta' }
-  return { Icon: Minus, cor: 'text-muted-foreground' }
+  if (delta < -0.1) return { Icon: TrendingDown, cor: 'cor-folha' }
+  if (delta > 0.1) return { Icon: TrendingUp, cor: 'cor-terracota' }
+  return { Icon: Minus, cor: 'texto-suave' }
 }
 
 /** Últimos 12 meses: peso de cada paciente no fim de cada mês (última pesagem até então). */
@@ -60,46 +60,52 @@ export default function Evolucao() {
   const pertoDaMeta = comPeso.filter((p) => p.pesoMetaKg && progressoMeta(p.pesoInicialKg, p.pesoAtualKg, p.pesoMetaKg) >= 90).length
 
   return (
-    <div className="space-y-6">
+    <div className="pagina">
       <div>
-        <h1 className="text-3xl font-semibold flex items-center gap-3">
-          <TrendingUp className="h-7 w-7 text-primary" /> Evolução dos pacientes
+        <h1 className="titulo-pagina titulo-icone">
+          <TrendingUp size={28} /> Evolução dos pacientes
         </h1>
-        <p className="text-muted-foreground mt-1">Acompanhe o progresso de peso e metas de todos os pacientes ativos.</p>
+        <p className="subtitulo-pagina">Acompanhe o progresso de peso e metas de todos os pacientes ativos.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-5">
-          <p className="text-xs text-muted-foreground">Total perdido (kg)</p>
-          <p className="text-3xl font-display font-semibold text-leaf mt-1">-{totalPerdido.toFixed(1)}</p>
+      <div className="grade grade-3-md">
+        <Card>
+          <p className="texto-pequeno texto-suave">Total perdido (kg)</p>
+          <p className="numero-medio cor-folha" style={{ marginTop: 4 }}>
+            -{totalPerdido.toFixed(1)}
+          </p>
         </Card>
-        <Card className="p-5">
-          <p className="text-xs text-muted-foreground">Total ganho (kg)</p>
-          <p className="text-3xl font-display font-semibold text-terracotta mt-1">+{totalGanho.toFixed(1)}</p>
+        <Card>
+          <p className="texto-pequeno texto-suave">Total ganho (kg)</p>
+          <p className="numero-medio cor-terracota" style={{ marginTop: 4 }}>
+            +{totalGanho.toFixed(1)}
+          </p>
         </Card>
-        <Card className="p-5">
-          <p className="text-xs text-muted-foreground">Próximos da meta (≥90%)</p>
-          <p className="text-3xl font-display font-semibold text-primary mt-1 flex items-center gap-2">
-            <Target className="h-6 w-6" /> {pertoDaMeta}/{pacientes.length}
+        <Card>
+          <p className="texto-pequeno texto-suave">Próximos da meta (≥90%)</p>
+          <p className="numero-medio cor-primaria linha-sm" style={{ marginTop: 4 }}>
+            <Target size={24} /> {pertoDaMeta}/{pacientes.length}
           </p>
         </Card>
       </div>
 
-      <Card className="p-5">
-        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-          <h3 className="font-display font-semibold text-lg">Evolução de peso (kg)</h3>
-          <p className="text-xs text-muted-foreground">Clique nos pacientes abaixo para comparar</p>
+      <Card>
+        <div className="card-cabecalho linha-quebra">
+          <h3>Evolução de peso (kg)</h3>
+          <p className="texto-pequeno texto-suave">Clique nos pacientes abaixo para comparar</p>
         </div>
         {serie.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-16">Selecione pacientes com pesagens registradas.</p>
+          <p className="centro texto-suave" style={{ padding: '64px 0' }}>
+            Selecione pacientes com pesagens registradas.
+          </p>
         ) : (
-          <div className="h-80">
+          <div style={{ height: 320 }}>
             <ResponsiveContainer>
               <LineChart data={serie} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="mes" stroke="var(--muted-foreground)" fontSize={12} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
-                <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--borda)" />
+                <XAxis dataKey="mes" stroke="var(--texto-suave)" fontSize={12} />
+                <YAxis stroke="var(--texto-suave)" fontSize={12} domain={['dataMin - 2', 'dataMax + 2']} />
+                <Tooltip contentStyle={{ background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 8, fontSize: 12 }} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 {visiveis.map((p, i) => (
                   <Line key={p.id} type="monotone" dataKey={p.nome} stroke={CORES[i % CORES.length]} strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
@@ -110,52 +116,46 @@ export default function Evolucao() {
         )}
       </Card>
 
-      <Card className="p-5">
-        <h3 className="font-display font-semibold text-lg mb-4">Progresso por paciente</h3>
-        {pacientes.length === 0 && <p className="text-sm text-muted-foreground">Nenhum paciente ativo.</p>}
-        <div className="space-y-3">
+      <Card>
+        <h3 className="card-titulo">Progresso por paciente</h3>
+        {pacientes.length === 0 && <p className="texto-suave">Nenhum paciente ativo.</p>}
+        <div className="pilha">
           {pacientes.map((p) => {
             const pct = progressoMeta(p.pesoInicialKg, p.pesoAtualKg, p.pesoMetaKg)
             const delta = p.pesoAtualKg != null && p.pesoInicialKg != null ? p.pesoAtualKg - p.pesoInicialKg : 0
             const { Icon, cor } = iconeVariacao(delta)
             const ativo = selecionados?.includes(p.id)
             return (
-              <div
-                key={p.id}
-                onClick={() => alternar(p.id)}
-                className={`p-4 rounded-lg border transition-colors cursor-pointer ${ativo ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-accent/40'}`}
-              >
-                <div className="flex items-center gap-4">
-                  <Avatar nome={p.nome} cor={p.avatarCor} textClassName="text-xs" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Link to={`/nutri/pacientes/${p.id}`} onClick={(e) => e.stopPropagation()} className="font-medium hover:text-primary">
-                        {p.nome}
-                      </Link>
-                      <Badge variant="outline">{objetivoLabel(p.objetivo)}</Badge>
-                    </div>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1 flex-wrap">
-                      <span>
-                        Inicial: <b className="text-foreground">{p.pesoInicialKg ?? '—'}kg</b>
-                      </span>
-                      <span>
-                        Atual: <b className="text-foreground">{p.pesoAtualKg ?? '—'}kg</b>
-                      </span>
-                      <span>
-                        Meta: <b className="text-foreground">{p.pesoMetaKg ?? '—'}kg</b>
-                      </span>
-                      <span className={`flex items-center gap-1 ${cor}`}>
-                        <Icon className="h-3 w-3" /> {sinal(delta)}kg
-                      </span>
-                    </div>
-                    <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
-                      <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-                    </div>
+              <div key={p.id} onClick={() => alternar(p.id)} className={`progresso-paciente ${ativo ? 'progresso-paciente-ativo' : ''}`}>
+                <Avatar nome={p.nome} cor={p.avatarCor} />
+                <div className="expandir">
+                  <div className="linha-sm linha-quebra">
+                    <Link to={`/nutri/pacientes/${p.id}`} onClick={(e) => e.stopPropagation()} className="texto-medio link-texto">
+                      {p.nome}
+                    </Link>
+                    <Badge variant="outline">{objetivoLabel(p.objetivo)}</Badge>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-2xl font-display font-semibold text-primary">{pct}%</p>
-                    <p className="text-xs text-muted-foreground">da meta</p>
+                  <div className="linha linha-quebra texto-pequeno texto-suave" style={{ gap: '4px 16px', marginTop: 4 }}>
+                    <span>
+                      Inicial: <b style={{ color: 'var(--texto)' }}>{p.pesoInicialKg ?? '—'}kg</b>
+                    </span>
+                    <span>
+                      Atual: <b style={{ color: 'var(--texto)' }}>{p.pesoAtualKg ?? '—'}kg</b>
+                    </span>
+                    <span>
+                      Meta: <b style={{ color: 'var(--texto)' }}>{p.pesoMetaKg ?? '—'}kg</b>
+                    </span>
+                    <span className={`linha-sm ${cor}`} style={{ gap: 4 }}>
+                      <Icon size={12} /> {sinal(delta)}kg
+                    </span>
                   </div>
+                  <div className="barra" style={{ marginTop: 8 }}>
+                    <span style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+                <div className="direita">
+                  <p className="numero-medio cor-primaria">{pct}%</p>
+                  <p className="texto-pequeno texto-suave">da meta</p>
                 </div>
               </div>
             )

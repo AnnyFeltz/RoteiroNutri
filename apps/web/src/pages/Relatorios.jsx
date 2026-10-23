@@ -28,71 +28,73 @@ export default function Relatorios() {
   const perdido = ativos.reduce((s, p) => s + (p.pesoInicialKg && p.pesoAtualKg ? Math.max(0, p.pesoInicialKg - p.pesoAtualKg) : 0), 0)
 
   return (
-    <div className="space-y-6">
+    <div className="pagina">
       <div>
-        <h1 className="text-3xl font-display font-semibold">Relatórios e fichas</h1>
-        <p className="text-muted-foreground mt-1">Gere a ficha médica/nutricional profissional de cada paciente em PDF.</p>
+        <h1 className="titulo-pagina">Relatórios e fichas</h1>
+        <p className="subtitulo-pagina">Gere a ficha médica/nutricional profissional de cada paciente em PDF.</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grade grade-2 grade-4-lg">
         <Stat icon={Users} rotulo="Pacientes ativos" valor={ativos.length} />
         <Stat icon={Apple} rotulo="Planos ativos" valor={ativos.filter((p) => p.planoAtivo).length} />
         <Stat icon={TrendingDown} rotulo="Peso perdido (total)" valor={`${perdido.toFixed(1)} kg`} />
         <Stat icon={Target} rotulo="Fichas disponíveis" valor={pacientes.length} />
       </div>
 
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar paciente..." className="pl-9 bg-background" />
-          </div>
-          <Segmented
-            value={filtro}
-            onChange={setFiltro}
-            options={[
-              { value: 'ativos', label: 'Ativos' },
-              { value: 'inativos', label: 'Inativos' },
-              { value: 'todos', label: 'Todos' },
-            ]}
-          />
+      <Card className="card-compacto filtros">
+        <div className="busca">
+          <Search />
+          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar paciente..." />
         </div>
+        <Segmented
+          value={filtro}
+          onChange={setFiltro}
+          options={[
+            { value: 'ativos', label: 'Ativos' },
+            { value: 'inativos', label: 'Inativos' },
+            { value: 'todos', label: 'Todos' },
+          ]}
+        />
       </Card>
 
-      <Card className="overflow-hidden">
-        <div className="px-5 py-3 border-b border-border flex items-center gap-2">
-          <ClipboardList className="h-4 w-4 text-primary" />
-          <p className="text-sm font-medium">Fichas médicas/nutricionais por paciente</p>
+      <Card className="card-sem-espaco">
+        <div className="linha-sm" style={{ padding: '12px 20px', borderBottom: '1px solid var(--borda)' }}>
+          <ClipboardList size={16} className="cor-primaria" />
+          <p className="texto-medio">Fichas médicas/nutricionais por paciente</p>
         </div>
-        <ul className="divide-y divide-border">
+        <ul className="lista-divisoria">
           {lista.map((p) => {
             const valorImc = imc(p.pesoAtualKg, p.alturaCm)
             const dif = p.pesoInicialKg && p.pesoAtualKg ? +(p.pesoAtualKg - p.pesoInicialKg).toFixed(1) : 0
             const Icon = dif < 0 ? TrendingDown : TrendingUp
             return (
-              <li key={p.id} className="px-5 py-3 flex flex-wrap items-center gap-3">
+              <li key={p.id} className="linha linha-quebra" style={{ padding: '12px 20px' }}>
                 <Avatar nome={p.nome} cor={p.avatarCor} />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{p.nome}</p>
-                  <p className="text-xs text-muted-foreground truncate">
+                <div className="expandir">
+                  <p className="texto-medio cortar">{p.nome}</p>
+                  <p className="texto-pequeno texto-suave cortar">
                     {objetivoLabel(p.objetivo)}
                     {valorImc ? ` · IMC ${valorImc.toFixed(1)} (${classificacaoImc(valorImc)})` : ''}
                     {p.pesoInicialKg && p.pesoAtualKg ? ` · ${p.pesoInicialKg}→${p.pesoAtualKg}kg` : ''}
                   </p>
                 </div>
-                <Badge variant="outline" className={`${dif < 0 ? 'border-leaf text-leaf' : dif > 0 ? 'border-terracotta text-terracotta' : ''} hidden sm:inline-flex`}>
-                  <Icon className="h-3 w-3" /> {Math.abs(dif)} kg
+                <Badge variant={dif < 0 ? 'folha' : dif > 0 ? 'terracota' : 'outline'} className="so-desktop">
+                  <Icon /> {Math.abs(dif)} kg
                 </Badge>
-                {p.ativo ? <Badge>Ativo</Badge> : <Badge variant="outline">Inativo</Badge>}
+                {p.ativo ? <Badge>Ativo</Badge> : <Badge variant="muted">Inativo</Badge>}
                 <Link to={`/nutri/pacientes/${p.id}/ficha`}>
                   <Button size="sm">
-                    <FileText className="h-3.5 w-3.5" /> Abrir ficha
+                    <FileText /> Abrir ficha
                   </Button>
                 </Link>
               </li>
             )
           })}
-          {lista.length === 0 && <li className="text-center py-12 text-sm text-muted-foreground">Nenhum paciente encontrado.</li>}
+          {lista.length === 0 && (
+            <li className="centro texto-suave" style={{ padding: '48px 0' }}>
+              Nenhum paciente encontrado.
+            </li>
+          )}
         </ul>
       </Card>
     </div>
@@ -101,12 +103,14 @@ export default function Relatorios() {
 
 function Stat({ icon: Icon, rotulo, valor }) {
   return (
-    <Card className="p-4 sm:p-5">
-      <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-primary/10 text-primary mb-3">
-        <Icon className="h-5 w-5" />
+    <Card>
+      <div className="icone-caixa icone-caixa-primaria" style={{ marginBottom: 12 }}>
+        <Icon />
       </div>
-      <p className="text-xs text-muted-foreground">{rotulo}</p>
-      <p className="text-2xl sm:text-3xl font-display font-semibold mt-1">{valor}</p>
+      <p className="texto-pequeno texto-suave">{rotulo}</p>
+      <p className="numero-medio" style={{ marginTop: 4 }}>
+        {valor}
+      </p>
     </Card>
   )
 }

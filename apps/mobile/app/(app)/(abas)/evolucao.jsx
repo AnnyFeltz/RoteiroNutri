@@ -3,12 +3,13 @@ import { Pressable, View, useWindowDimensions } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { TrendingDown, TrendingUp, Trophy, Plus, Target } from 'lucide-react-native'
-import { imc, classificacaoImc, progressoMeta } from '@RoteiroNutri/shared'
+import { imc, classificacaoImc, progressoMeta, evolucaoSchema } from '@RoteiroNutri/shared'
 import { BarraProgresso, Botao, Cabecalho, Campo, Card, Carregando, Erro, Selo, Tela, Texto, estilos } from '../../../components/ui'
 import { Linha } from '../../../components/graficos'
 import { api } from '../../../lib/api'
 import { hojeLocal, useEvolucao, usePerfil } from '../../../lib/consultas'
 import { conquistas } from '../../../lib/conquistas'
+import { validar } from '../../../lib/validacao'
 import { dataBR, diaMes, mesCurto, num, sinal } from '../../../lib/formato'
 import { cores } from '../../../lib/tema'
 
@@ -24,7 +25,7 @@ export default function Evolucao() {
   const [erro, setErro] = useState('')
 
   const registrar = useMutation({
-    mutationFn: () => api('/app/evolucao', { method: 'POST', body: { pesoKg: Number(peso.replace(',', '.')), data: hojeLocal() } }),
+    mutationFn: (dados) => api('/app/evolucao', { method: 'POST', body: dados }),
     onSuccess: (novo) => {
       queryClient.setQueryData(['evolucao'], novo)
       queryClient.invalidateQueries({ queryKey: ['perfil'] })
@@ -34,6 +35,12 @@ export default function Evolucao() {
     },
     onError: (e) => setErro(e.message),
   })
+
+  const enviarPeso = () => {
+    const { dados, erro: invalido } = validar(evolucaoSchema, { pesoKg: peso.replace(',', '.'), data: hojeLocal() })
+    if (invalido) return setErro(invalido)
+    registrar.mutate(dados)
+  }
 
   if (evolucao.isLoading || perfil.isLoading) return <Carregando />
   if (evolucao.error) return <Erro erro={evolucao.error} onTentar={evolucao.refetch} />
@@ -65,7 +72,7 @@ export default function Evolucao() {
           <Texto estilo="forte">Registrar peso de hoje</Texto>
           <View style={[estilos.linha, { gap: 8 }]}>
             <Campo style={{ flex: 1 }} value={peso} onChangeText={setPeso} keyboardType="decimal-pad" placeholder="kg" autoFocus />
-            <Botao titulo="Salvar" onPress={() => registrar.mutate()} carregando={registrar.isPending} desabilitado={!peso} />
+            <Botao titulo="Salvar" onPress={enviarPeso} carregando={registrar.isPending} desabilitado={!peso} />
           </View>
           {erro ? <Texto style={{ color: cores.perigo, fontSize: 12 }}>{erro}</Texto> : null}
         </Card>

@@ -5,12 +5,13 @@ import { toast } from 'sonner'
 import { ArrowLeft, Plus, Trash2, Calculator, Replace, X, Scale } from 'lucide-react'
 import {
   mifflinStJeor, harrisBenedict, calcularGET, ajustarParaObjetivo, macroGramas, calcularAlimento, totaisRefeicao,
-  gramasEquivalentes, iconeAlimento,
+  gramasEquivalentes, iconeAlimento, planoAlimentarSchema,
 } from '@RoteiroNutri/shared'
 import { Button, Card, Carregando, ErroCarregamento, Field, Input, Modal, Select } from '../components/ui'
 import { FoodPicker } from '../components/FoodPicker'
 import { api } from '../lib/api'
 import { objetivoLabel } from '../lib/format'
+import { validar } from '../lib/validacao'
 
 let contador = 0
 const chave = () => `k${++contador}`
@@ -96,9 +97,8 @@ export default function PlanoEditor() {
   const totalKcal = refeicoes.reduce((s, r) => s + totaisRefeicao(r).kcal, 0)
 
   const enviar = () => {
-    if (somaMacros !== 100) return toast.error('Os macronutrientes devem somar 100%')
-    if (!refeicoes.length) return toast.error('Adicione ao menos uma refeição')
-    salvar.mutate({
+    // o mesmo schema Zod que a API usa (macros somando 100%, gramagens positivas...)
+    const dados = validar(planoAlimentarSchema, {
       nome,
       kcalAlvo,
       ...macros,
@@ -112,17 +112,19 @@ export default function PlanoEditor() {
         })),
       })),
     })
+    if (dados) salvar.mutate(dados)
   }
 
   const atualizarRefeicao = (idx, nova) => setRefeicoes((rs) => rs.map((r, i) => (i === idx ? nova : r)))
+  const diferencaOk = Math.abs(totalKcal - kcalAlvo) <= kcalAlvo * 0.05
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to={`/nutri/pacientes/${p.id}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
-          <ArrowLeft className="h-4 w-4" /> Voltar para {p.nome}
+    <div className="pagina" style={{ gap: 20 }}>
+      <div className="cabecalho-pagina" style={{ alignItems: 'center' }}>
+        <Link to={`/nutri/pacientes/${p.id}`} className="link-voltar">
+          <ArrowLeft size={16} /> Voltar para {p.nome}
         </Link>
-        <div className="flex gap-2">
+        <div className="acoes">
           <Button variant="outline" onClick={() => nav(-1)}>
             Cancelar
           </Button>
@@ -132,24 +134,26 @@ export default function PlanoEditor() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-baseline gap-3">
-        <h1 className="text-3xl font-semibold">{planoId ? 'Editar' : 'Criar'} plano alimentar</h1>
-        <span className="text-muted-foreground">para {p.nome}</span>
+      <div>
+        <div className="linha linha-quebra alinhar-base">
+          <h1 className="titulo-pagina">{planoId ? 'Editar' : 'Criar'} plano alimentar</h1>
+          <span className="texto-suave">para {p.nome}</span>
+        </div>
+        {planoId && base.data && (
+          <p className="texto-suave" style={{ marginTop: 4 }}>
+            Editando a partir da versão v{base.data.versao}. Ao salvar, uma nova versão será criada e passará a ser o plano ativo (o histórico é
+            preservado).
+          </p>
+        )}
       </div>
-      {planoId && base.data && (
-        <p className="text-sm text-muted-foreground -mt-3">
-          Editando a partir da versão v{base.data.versao}. Ao salvar, uma nova versão será criada e passará a ser o plano ativo (o histórico é
-          preservado).
-        </p>
-      )}
 
-      <div className="grid lg:grid-cols-3 gap-5">
-        <Card className="p-5 space-y-5 self-start lg:sticky lg:top-24">
+      <div className="grade grade-3-lg" style={{ gap: 20 }}>
+        <Card className="pilha-lg fixo-no-topo">
           <div>
-            <h3 className="font-display font-semibold flex items-center gap-2">
-              <Calculator className="h-4 w-4 text-primary" /> Calculadora automática
+            <h3 className="titulo-card linha-sm">
+              <Calculator size={16} className="cor-primaria" /> Calculadora automática
             </h3>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="texto-pequeno texto-suave" style={{ marginTop: 4 }}>
               {podeCalcular
                 ? `${p.pesoAtualKg}kg · ${p.alturaCm}cm · ${p.idade} anos · ${p.sexo === 'F' ? 'Feminino' : 'Masculino'}`
                 : 'Preencha peso, altura, idade e sexo do paciente (aba Avaliação) para usar a calculadora.'}
@@ -177,19 +181,19 @@ export default function PlanoEditor() {
                   </Select>
                 )}
               </Field>
-              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
+              <div className="grade grade-2 separador-topo" style={{ gap: 12 }}>
                 <div>
-                  <p className="text-xs text-muted-foreground">TMB</p>
-                  <p className="text-xl font-display font-semibold">{Math.round(tmb)}</p>
+                  <p className="texto-pequeno texto-suave">TMB</p>
+                  <p className="numero-pequeno">{Math.round(tmb)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">GET</p>
-                  <p className="text-xl font-display font-semibold">{Math.round(get)}</p>
+                  <p className="texto-pequeno texto-suave">GET</p>
+                  <p className="numero-pequeno">{Math.round(get)}</p>
                 </div>
-                <div className="col-span-2">
-                  <p className="text-xs text-muted-foreground">Sugerido para "{objetivoLabel(p.objetivo)}"</p>
-                  <p className="text-2xl font-display font-semibold text-primary">{sugerido} kcal</p>
-                  <Button variant="link" className="text-xs" onClick={() => setKcalAlvo(sugerido)}>
+                <div className="ocupa-tudo">
+                  <p className="texto-pequeno texto-suave">Sugerido para "{objetivoLabel(p.objetivo)}"</p>
+                  <p className="numero-medio cor-primaria">{sugerido} kcal</p>
+                  <Button variant="link" className="texto-pequeno" onClick={() => setKcalAlvo(sugerido)}>
                     Aplicar valor sugerido →
                   </Button>
                 </div>
@@ -197,34 +201,30 @@ export default function PlanoEditor() {
             </>
           )}
 
-          <Field label="Calorias alvo" className="pt-2 border-t border-border">
+          <Field label="Calorias alvo" className="separador-topo">
             {(fid) => <Input id={fid} type="number" value={kcalAlvo} onChange={(e) => setKcalAlvo(Math.max(0, Math.round(+e.target.value)))} />}
           </Field>
 
-          <div className="space-y-3 pt-2 border-t border-border">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Macronutrientes</span>
-              <span className={`text-xs font-medium ${somaMacros === 100 ? 'text-leaf' : 'text-destructive'}`}>{somaMacros}%</span>
+          <div className="pilha separador-topo">
+            <div className="linha entre">
+              <span className="texto-medio">Macronutrientes</span>
+              <span className={`texto-pequeno texto-medio ${somaMacros === 100 ? 'cor-folha' : 'cor-perigo'}`}>{somaMacros}%</span>
             </div>
-            <MacroSlider rotulo="Carboidratos" cor="var(--chart-3)" valor={macros.pctCarbo} gramas={g.carbo} onChange={(v) => setMacros({ ...macros, pctCarbo: v })} />
-            <MacroSlider rotulo="Proteínas" cor="var(--primary)" valor={macros.pctProteina} gramas={g.proteina} onChange={(v) => setMacros({ ...macros, pctProteina: v })} />
-            <MacroSlider rotulo="Gorduras" cor="var(--terracotta)" valor={macros.pctGordura} gramas={g.gordura} onChange={(v) => setMacros({ ...macros, pctGordura: v })} />
+            <MacroSlider rotulo="Carboidratos" cor="var(--grafico-carbo)" valor={macros.pctCarbo} gramas={g.carbo} onChange={(v) => setMacros({ ...macros, pctCarbo: v })} />
+            <MacroSlider rotulo="Proteínas" cor="var(--primaria)" valor={macros.pctProteina} gramas={g.proteina} onChange={(v) => setMacros({ ...macros, pctProteina: v })} />
+            <MacroSlider rotulo="Gorduras" cor="var(--terracota)" valor={macros.pctGordura} gramas={g.gordura} onChange={(v) => setMacros({ ...macros, pctGordura: v })} />
           </div>
         </Card>
 
-        <div className="lg:col-span-2 space-y-4">
-          <Card className="p-5">
-            <div className="flex flex-wrap items-end gap-3 justify-between">
-              <Field label="Nome do plano" className="flex-1 min-w-[200px]">
-                {(fid) => <Input id={fid} value={nome} onChange={(e) => setNome(e.target.value)} />}
-              </Field>
-              <div className="text-right">
-                <p className="text-xs text-muted-foreground">Total atual</p>
-                <p className={`text-2xl font-display font-semibold ${Math.abs(totalKcal - kcalAlvo) <= kcalAlvo * 0.05 ? 'text-primary' : 'text-terracotta'}`}>
-                  {totalKcal} kcal
-                </p>
-                <p className="text-xs text-muted-foreground">Alvo: {kcalAlvo} kcal</p>
-              </div>
+        <div className="pilha ocupa-2-lg" style={{ gap: 16 }}>
+          <Card className="cabecalho-pagina" style={{ alignItems: 'flex-end' }}>
+            <Field label="Nome do plano" className="expandir" >
+              {(fid) => <Input id={fid} value={nome} onChange={(e) => setNome(e.target.value)} />}
+            </Field>
+            <div className="direita">
+              <p className="texto-pequeno texto-suave">Total atual</p>
+              <p className={`numero-medio ${diferencaOk ? 'cor-primaria' : 'cor-terracota'}`}>{totalKcal} kcal</p>
+              <p className="texto-pequeno texto-suave">Alvo: {kcalAlvo} kcal</p>
             </div>
           </Card>
 
@@ -237,12 +237,8 @@ export default function PlanoEditor() {
             />
           ))}
 
-          <Button
-            variant="outline"
-            className="w-full border-dashed"
-            onClick={() => setRefeicoes([...refeicoes, { key: chave(), nome: 'Nova refeição', horario: '12:00', itens: [] }])}
-          >
-            <Plus className="h-4 w-4" /> Adicionar refeição
+          <Button variant="outline" className="btn-bloco btn-tracejado" onClick={() => setRefeicoes([...refeicoes, { key: chave(), nome: 'Nova refeição', horario: '12:00', itens: [] }])}>
+            <Plus /> Adicionar refeição
           </Button>
         </div>
       </div>
@@ -253,16 +249,16 @@ export default function PlanoEditor() {
 function MacroSlider({ rotulo, cor, valor, gramas, onChange }) {
   return (
     <div>
-      <div className="flex justify-between text-xs mb-1.5">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full" style={{ background: cor }} />
+      <div className="linha entre texto-pequeno" style={{ marginBottom: 6 }}>
+        <span className="linha-sm">
+          <span className="ponto" style={{ background: cor }} />
           {rotulo}
         </span>
-        <span className="font-medium">
+        <span className="texto-medio">
           {valor}% · {gramas}g
         </span>
       </div>
-      <input type="range" min={5} max={70} step={1} value={valor} onChange={(e) => onChange(+e.target.value)} className="w-full accent-[var(--primary)]" aria-label={rotulo} />
+      <input type="range" min={5} max={70} step={1} value={valor} onChange={(e) => onChange(+e.target.value)} className="faixa" aria-label={rotulo} />
     </div>
   )
 }
@@ -272,19 +268,19 @@ function RefeicaoBloco({ refeicao, onChange, onRemover }) {
   const atualizarItem = (idx, novo) => onChange({ ...refeicao, itens: refeicao.itens.map((x, i) => (i === idx ? novo : x)) })
 
   return (
-    <Card className="p-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <Input className="max-w-[220px]" value={refeicao.nome} onChange={(e) => onChange({ ...refeicao, nome: e.target.value })} aria-label="Nome da refeição" />
-        <Input type="time" className="max-w-[120px]" value={refeicao.horario} onChange={(e) => onChange({ ...refeicao, horario: e.target.value })} aria-label="Horário" />
-        <div className="ml-auto flex items-center gap-3">
-          <span className="text-sm font-mono text-primary">{totaisRefeicao(refeicao).kcal} kcal</span>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={onRemover} title="Remover refeição">
-            <Trash2 className="h-4 w-4" />
+    <Card>
+      <div className="linha linha-quebra">
+        <Input className="campo-medio" value={refeicao.nome} onChange={(e) => onChange({ ...refeicao, nome: e.target.value })} aria-label="Nome da refeição" />
+        <Input type="time" className="campo-horario" value={refeicao.horario} onChange={(e) => onChange({ ...refeicao, horario: e.target.value })} aria-label="Horário" />
+        <div className="linha empurrar">
+          <span className="mono cor-primaria">{totaisRefeicao(refeicao).kcal} kcal</span>
+          <Button variant="ghost" size="icon" className="btn-acao-perigo" onClick={onRemover} title="Remover refeição">
+            <Trash2 />
           </Button>
         </div>
       </div>
 
-      <ul className="mt-4 space-y-2">
+      <ul className="pilha-sm" style={{ marginTop: 16 }}>
         {refeicao.itens.map((item, i) => (
           <ItemLinha
             key={item.key}
@@ -295,8 +291,8 @@ function RefeicaoBloco({ refeicao, onChange, onRemover }) {
         ))}
       </ul>
 
-      <Button variant="outline" size="sm" className="mt-3 w-full border-dashed" onClick={() => setEscolhendo(true)}>
-        <Plus className="h-4 w-4" /> Adicionar alimento
+      <Button variant="outline" size="sm" className="btn-bloco btn-tracejado" style={{ marginTop: 12 }} onClick={() => setEscolhendo(true)}>
+        <Plus /> Adicionar alimento
       </Button>
 
       <FoodPicker
@@ -315,23 +311,23 @@ function ItemLinha({ item, onChange, onRemover }) {
   const [substituicoes, setSubstituicoes] = useState(false)
   const c = calcularAlimento(item.alimento, item.gramas)
   return (
-    <li className="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-background/60 border border-border">
-      <span className="text-xl">{iconeAlimento(item.alimento)}</span>
-      <div className="flex-1 min-w-[180px]">
-        <p className="text-sm font-medium">{item.alimento.nome}</p>
-        <p className="text-xs text-muted-foreground">
+    <li className="item-plano">
+      <span className="emoji">{iconeAlimento(item.alimento)}</span>
+      <div className="expandir" style={{ minWidth: 180 }}>
+        <p className="texto-medio">{item.alimento.nome}</p>
+        <p className="texto-pequeno texto-suave">
           {c.kcal} kcal · C {c.carbo}g · P {c.proteina}g · G {c.gordura}g · {item.substitutos.length} substituições
         </p>
       </div>
-      <div className="flex items-center gap-1">
-        <Input type="number" min="1" className="w-20 h-8" value={item.gramas} onChange={(e) => onChange({ ...item, gramas: Math.max(0, +e.target.value || 0) })} aria-label="Gramas" />
-        <span className="text-xs text-muted-foreground">g</span>
+      <div className="linha-sm">
+        <Input type="number" min="1" className="campo-curto" value={item.gramas} onChange={(e) => onChange({ ...item, gramas: Math.max(0, +e.target.value || 0) })} aria-label="Gramas" />
+        <span className="texto-pequeno texto-suave">g</span>
       </div>
       <Button variant="outline" size="sm" onClick={() => setSubstituicoes(true)}>
-        <Replace className="h-3.5 w-3.5" /> Substituições
+        <Replace /> Substituições
       </Button>
-      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={onRemover} title="Remover alimento">
-        <X className="h-4 w-4" />
+      <Button variant="ghost" size="icon" onClick={onRemover} title="Remover alimento">
+        <X />
       </Button>
       <SubstituicoesModal open={substituicoes} onClose={() => setSubstituicoes(false)} item={item} onChange={onChange} />
     </li>
@@ -353,37 +349,31 @@ function SubstituicoesModal({ open, onClose, item, onChange }) {
         description={`Equivalentes para ${item.alimento.nome} (${item.gramas} g · ${original.kcal} kcal). A gramagem é ajustada para manter a mesma energia.`}
         footer={<Button onClick={onClose}>Pronto</Button>}
       >
-        <ul className="space-y-2 max-h-72 overflow-auto">
+        <ul className="pilha-sm lista-rolavel">
           {item.substitutos.map((s, i) => {
             const cs = calcularAlimento(s.alimento, s.gramas)
             return (
-              <li key={s.key} className="flex items-center gap-2 p-2 border border-border rounded-lg text-sm">
+              <li key={s.key} className="item-substituto">
                 <span>{iconeAlimento(s.alimento)}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="truncate">{s.alimento.nome}</p>
-                  <p className="text-xs text-muted-foreground">{cs.kcal} kcal</p>
+                <div className="expandir">
+                  <p className="cortar">{s.alimento.nome}</p>
+                  <p className="texto-pequeno texto-suave">{cs.kcal} kcal</p>
                 </div>
-                <Input type="number" min="1" className="w-20 h-8" value={s.gramas} onChange={(e) => atualizar(i, { ...s, gramas: Math.max(0, +e.target.value || 0) })} aria-label="Gramas do substituto" />
-                <span className="text-xs text-muted-foreground">g</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  title="Recalcular gramagem equivalente"
-                  onClick={() => atualizar(i, { ...s, gramas: gramasEquivalentes(item.alimento, item.gramas, s.alimento) })}
-                >
-                  <Scale className="h-3.5 w-3.5" />
+                <Input type="number" min="1" className="campo-curto" value={s.gramas} onChange={(e) => atualizar(i, { ...s, gramas: Math.max(0, +e.target.value || 0) })} aria-label="Gramas do substituto" />
+                <span className="texto-pequeno texto-suave">g</span>
+                <Button variant="ghost" size="icon" title="Recalcular gramagem equivalente" onClick={() => atualizar(i, { ...s, gramas: gramasEquivalentes(item.alimento, item.gramas, s.alimento) })}>
+                  <Scale />
                 </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onChange({ ...item, substitutos: item.substitutos.filter((_, j) => j !== i) })} title="Remover">
-                  <X className="h-3.5 w-3.5" />
+                <Button variant="ghost" size="icon" onClick={() => onChange({ ...item, substitutos: item.substitutos.filter((_, j) => j !== i) })} title="Remover">
+                  <X />
                 </Button>
               </li>
             )
           })}
-          {item.substitutos.length === 0 && <li className="text-sm text-muted-foreground text-center py-3">Nenhum equivalente ainda.</li>}
+          {item.substitutos.length === 0 && <li className="centro texto-suave" style={{ padding: '12px 0' }}>Nenhum equivalente ainda.</li>}
         </ul>
-        <Button variant="outline" className="w-full mt-3" onClick={() => setEscolhendo(true)}>
-          <Plus className="h-4 w-4" /> Adicionar equivalente
+        <Button variant="outline" className="btn-bloco" style={{ marginTop: 12 }} onClick={() => setEscolhendo(true)}>
+          <Plus /> Adicionar equivalente
         </Button>
       </Modal>
       <FoodPicker

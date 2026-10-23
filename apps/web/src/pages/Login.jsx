@@ -1,25 +1,30 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { loginSchema } from '@RoteiroNutri/shared'
 import { AuthLayout } from '../components/AuthLayout'
 import { Button, Field, Input } from '../components/ui'
 import { useAuth } from '../lib/auth'
+import { validar } from '../lib/validacao'
 
+// RF02 - Login do nutricionista
 export default function Login() {
   const { entrar, token } = useAuth()
   const nav = useNavigate()
   const location = useLocation()
-  const [email, setEmail] = useState('')
-  const [senha, setSenha] = useState('')
+  const [form, setForm] = useState({ email: '', senha: '' })
+  const [erros, setErros] = useState({})
   const [carregando, setCarregando] = useState(false)
 
   if (token) return <Navigate to="/nutri" replace />
 
   const enviar = async (e) => {
     e.preventDefault()
+    const dados = validar(loginSchema, form, setErros)
+    if (!dados) return
     setCarregando(true)
     try {
-      await entrar(email, senha)
+      await entrar(dados.email, dados.senha)
       toast.success('Bem-vinda de volta!')
       nav(location.state?.de || '/nutri', { replace: true })
     } catch (err) {
@@ -31,33 +36,34 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <h1 className="text-3xl font-semibold">Bem-vinda de volta</h1>
-      <p className="text-muted-foreground mt-2 text-sm">Entre para acessar seu consultório.</p>
-      <form onSubmit={enviar} className="mt-8 space-y-4">
-        <Field label="E-mail">
-          {(id) => <Input id={id} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />}
+      <h1>Bem-vinda de volta</h1>
+      <p className="subtitulo-pagina">Entre para acessar seu consultório.</p>
+      <form onSubmit={enviar} noValidate>
+        <Field label="E-mail" erro={erros.email}>
+          {(id) => <Input id={id} type="email" autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} erro={erros.email} />}
         </Field>
         <div>
-          <div className="flex justify-between items-center">
-            <label htmlFor="senha" className="text-sm font-medium">
+          <div className="linha entre" style={{ marginBottom: 6 }}>
+            <label htmlFor="senha" className="rotulo" style={{ margin: 0 }}>
               Senha
             </label>
-            <Link to="/esqueci-senha" className="text-xs text-primary hover:underline">
+            <Link to="/esqueci-senha" className="link texto-pequeno">
               Esqueci minha senha
             </Link>
           </div>
-          <Input id="senha" type="password" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} required className="mt-1.5" />
+          <Input id="senha" type="password" autoComplete="current-password" value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })} erro={erros.senha} />
+          {erros.senha && <p className="erro-campo">{erros.senha}</p>}
         </div>
-        <Button type="submit" loading={carregando} className="w-full">
+        <Button type="submit" loading={carregando} className="btn-bloco">
           {carregando ? 'Entrando...' : 'Entrar'}
         </Button>
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="centro texto-suave">
           Ainda não tem conta?{' '}
-          <Link to="/cadastro" className="text-primary font-medium hover:underline">
+          <Link to="/cadastro" className="link">
             Cadastre-se
           </Link>
         </p>
-        <p className="text-center text-xs text-muted-foreground/80">É paciente? Acesse pelo app Roteiro Nutri no seu celular.</p>
+        <p className="centro texto-pequeno texto-suave">É paciente? Acesse pelo app Roteiro Nutri no seu celular.</p>
       </form>
     </AuthLayout>
   )

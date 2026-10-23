@@ -25,46 +25,44 @@ export default function Agenda() {
   const marcados = useMemo(() => new Set((doMes.data || []).map((c) => c.data)), [doMes.data])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div className="pagina">
+      <div className="cabecalho-pagina">
         <div>
-          <h1 className="text-3xl font-semibold flex items-center gap-3">
-            <CalendarDays className="h-7 w-7 text-primary" /> Agenda
+          <h1 className="titulo-pagina titulo-icone">
+            <CalendarDays size={28} /> Agenda
           </h1>
-          <p className="text-muted-foreground mt-1">Clique em um dia para ver as consultas. Para agendar, abra o paciente → aba Consultas.</p>
+          <p className="subtitulo-pagina">Clique em um dia para ver as consultas. Para agendar, abra o paciente → aba Consultas.</p>
         </div>
-        <Badge variant="outline" className="text-sm">
+        <Badge variant="outline" style={{ fontSize: 14 }}>
           {doMes.data?.length ?? 0} consulta{doMes.data?.length === 1 ? '' : 's'} neste mês
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="p-4 lg:col-span-2">
+      <div className="grade grade-3-lg" style={{ gap: 24 }}>
+        <Card className="card-compacto ocupa-2-lg">
           <Calendario mes={mes} onMudarMes={setMes} marcados={marcados} hoje={hoje} onSelecionar={(d) => nav(`/nutri/agenda/${d}`)} />
-          <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground border-t border-border pt-3">
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-primary inline-block" /> Dia com consulta
-            </span>
+          <div className="linha-sm texto-pequeno texto-suave separador-topo" style={{ marginTop: 16, paddingTop: 12 }}>
+            <span className="ponto" style={{ background: 'var(--primaria)' }} /> Dia com consulta
           </div>
         </Card>
 
-        <Card className="p-5">
-          <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-primary" /> Próximas consultas
+        <Card>
+          <h3 className="card-titulo linha-sm">
+            <Clock size={16} className="cor-primaria" /> Próximas consultas
           </h3>
           {proximas.isLoading ? (
             <Carregando />
           ) : proximas.data.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma consulta agendada.</p>
+            <p className="texto-suave">Nenhuma consulta agendada.</p>
           ) : (
-            <ul className="space-y-3">
+            <ul className="pilha-sm">
               {proximas.data.slice(0, 8).map((c) => (
                 <li key={c.id}>
-                  <Link to={`/nutri/agenda/${c.data}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-colors">
-                    <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} className="h-9 w-9" textClassName="text-xs" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{c.paciente.nome}</p>
-                      <p className="text-xs text-muted-foreground">
+                  <Link to={`/nutri/agenda/${c.data}`} className="item-agenda">
+                    <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} tamanho="sm" />
+                    <div className="expandir">
+                      <p className="texto-medio cortar">{c.paciente.nome}</p>
+                      <p className="texto-pequeno texto-suave">
                         {dataBR(c.data)} • {c.horario} • {c.tipo}
                       </p>
                     </div>

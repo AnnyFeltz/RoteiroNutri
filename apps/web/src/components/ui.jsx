@@ -1,128 +1,101 @@
-// Componentes de interface reutilizáveis (inspirados no visual shadcn/ui do protótipo).
+// Componentes de interface reutilizáveis (estilos em src/estilos/componentes.css).
 import { useEffect, useId } from 'react'
 import { Loader2, X } from 'lucide-react'
 import { iniciais } from '../lib/format'
 import { cn } from '../lib/hooks'
 
 const VARIANTES_BOTAO = {
-  default: 'bg-primary text-primary-foreground hover:bg-leaf-deep',
-  outline: 'border border-border bg-card hover:bg-muted text-foreground',
-  ghost: 'hover:bg-muted text-foreground',
-  destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-  link: 'text-primary underline-offset-4 hover:underline px-0 h-auto',
-  secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+  default: '',
+  outline: 'btn-contorno',
+  ghost: 'btn-fantasma',
+  destructive: 'btn-perigo',
+  link: 'btn-link',
 }
 
-const TAMANHOS_BOTAO = {
-  default: 'h-9 px-4 py-2 text-sm',
-  sm: 'h-8 px-3 text-xs',
-  lg: 'h-11 px-6 text-base',
-  icon: 'h-9 w-9',
-}
+const TAMANHOS_BOTAO = { default: '', sm: 'btn-sm', lg: 'btn-lg', icon: 'btn-icone' }
 
-export function Button({ variant = 'default', size = 'default', className, loading, children, disabled, ...props }) {
+export function Button({ variant = 'default', size = 'default', className, loading, children, disabled, type = 'button', ...props }) {
   return (
-    <button
-      className={cn(
-        'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
-        VARIANTES_BOTAO[variant],
-        variant !== 'link' && TAMANHOS_BOTAO[size],
-        className,
-      )}
-      disabled={disabled || loading}
-      {...props}
-    >
-      {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+    <button type={type} className={cn('btn', VARIANTES_BOTAO[variant], TAMANHOS_BOTAO[size], className)} disabled={disabled || loading} {...props}>
+      {loading && <Loader2 className="girando" />}
       {children}
     </button>
   )
 }
 
-const campo =
-  'w-full rounded-md border border-input bg-card px-3 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:border-ring disabled:opacity-50'
-
-export function Input({ className, ...props }) {
-  return <input className={cn(campo, 'h-9 py-1', className)} {...props} />
+export function Input({ className, erro, ...props }) {
+  return <input className={cn('campo', erro && 'campo-com-erro', className)} {...props} />
 }
 
 export function Textarea({ className, ...props }) {
-  return <textarea className={cn(campo, 'py-2 min-h-[80px]', className)} {...props} />
+  return <textarea className={cn('campo', className)} {...props} />
 }
 
 export function Select({ className, children, ...props }) {
   return (
-    <select className={cn(campo, 'h-9 py-1 pr-8', className)} {...props}>
+    <select className={cn('campo', className)} {...props}>
       {children}
     </select>
   )
 }
 
-export function Label({ className, ...props }) {
-  return <label className={cn('text-sm font-medium leading-none', className)} {...props} />
-}
-
-/** Label + controle + mensagem de ajuda, com o htmlFor ligado automaticamente. */
-export function Field({ label, hint, className, children }) {
+/** Rótulo + controle + ajuda/erro, com o htmlFor ligado automaticamente. */
+export function Field({ label, hint, erro, className, children }) {
   const id = useId()
   return (
     <div className={className}>
-      <Label htmlFor={id}>{label}</Label>
-      <div className="mt-1.5">{typeof children === 'function' ? children(id) : children}</div>
-      {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
+      <label htmlFor={id} className="rotulo">
+        {label}
+      </label>
+      {typeof children === 'function' ? children(id) : children}
+      {erro ? <p className="erro-campo">{erro}</p> : hint ? <p className="dica">{hint}</p> : null}
     </div>
   )
 }
 
 export function Card({ className, ...props }) {
-  return <div className={cn('rounded-xl border border-border bg-card text-card-foreground', className)} {...props} />
+  return <div className={cn('card', className)} {...props} />
 }
 
-const VARIANTES_BADGE = {
-  default: 'bg-primary/15 text-primary border-transparent',
-  outline: 'border-border text-foreground',
-  secondary: 'bg-secondary text-secondary-foreground border-transparent',
-  muted: 'bg-muted text-muted-foreground border-transparent',
+const VARIANTES_SELO = {
+  default: '',
+  outline: 'selo-contorno',
+  secondary: 'selo-secundario',
+  muted: 'selo-suave',
+  terracota: 'selo-terracota',
+  primaria: 'selo-primaria',
+  folha: 'selo-folha',
 }
 
 export function Badge({ variant = 'default', className, ...props }) {
-  return (
-    <span
-      className={cn('inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium', VARIANTES_BADGE[variant], className)}
-      {...props}
-    />
-  )
+  return <span className={cn('selo', VARIANTES_SELO[variant], className)} {...props} />
 }
 
-export function Avatar({ nome, cor, className, textClassName }) {
+export function Avatar({ nome, cor, tamanho }) {
   return (
-    <span
-      className={cn('inline-flex shrink-0 items-center justify-center rounded-full text-white font-semibold', className || 'h-10 w-10', textClassName || 'text-sm')}
-      style={{ background: cor || 'var(--primary)' }}
-    >
+    <span className={cn('avatar', tamanho && `avatar-${tamanho}`)} style={{ background: cor || 'var(--primaria)' }}>
       {iniciais(nome)}
     </span>
   )
 }
 
-export function Spinner({ className }) {
-  return <Loader2 className={cn('h-5 w-5 animate-spin text-primary', className)} />
-}
-
 export function Carregando({ texto = 'Carregando...' }) {
   return (
-    <div className="flex items-center justify-center gap-3 py-20 text-sm text-muted-foreground">
-      <Spinner /> {texto}
+    <div className="carregando">
+      <Loader2 className="girando" /> {texto}
     </div>
   )
 }
 
 export function ErroCarregamento({ erro, onTentar }) {
   return (
-    <Card className="p-10 text-center">
-      <p className="font-medium">Não foi possível carregar os dados.</p>
-      <p className="text-sm text-muted-foreground mt-1">{erro?.message}</p>
+    <Card className="card-vazio">
+      <p className="texto-medio" style={{ color: 'var(--texto)' }}>
+        Não foi possível carregar os dados.
+      </p>
+      <p className="texto-pequeno">{erro?.message}</p>
       {onTentar && (
-        <Button variant="outline" className="mt-4" onClick={onTentar}>
+        <Button variant="outline" style={{ marginTop: 16 }} onClick={onTentar}>
           Tentar novamente
         </Button>
       )}
@@ -130,7 +103,7 @@ export function ErroCarregamento({ erro, onTentar }) {
   )
 }
 
-export function Modal({ open, onClose, title, description, children, footer, className }) {
+export function Modal({ open, onClose, title, description, children, footer, largo }) {
   useEffect(() => {
     if (!open) return
     const onKey = (e) => e.key === 'Escape' && onClose?.()
@@ -140,20 +113,15 @@ export function Modal({ open, onClose, title, description, children, footer, cla
 
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onMouseDown={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        className={cn('relative w-full max-w-lg max-h-[90vh] overflow-auto rounded-xl border border-border bg-card p-6 shadow-xl', className)}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <button onClick={onClose} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground" aria-label="Fechar">
-          <X className="h-4 w-4" />
+    <div className="modal-fundo" onMouseDown={onClose}>
+      <div role="dialog" aria-modal="true" className={cn('modal', largo && 'modal-largo')} onMouseDown={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="modal-fechar" aria-label="Fechar">
+          <X />
         </button>
-        {title && <h2 className="text-lg font-semibold pr-6">{title}</h2>}
-        {description && <p className="text-sm text-muted-foreground mt-1.5">{description}</p>}
-        <div className={title ? 'mt-4' : ''}>{children}</div>
-        {footer && <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">{footer}</div>}
+        {title && <h2 className="modal-titulo">{title}</h2>}
+        {description && <p className="modal-descricao">{description}</p>}
+        {children && <div className={title ? 'modal-corpo' : ''}>{children}</div>}
+        {footer && <div className="modal-rodape">{footer}</div>}
       </div>
     </div>
   )
@@ -182,16 +150,9 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, description, co
 
 export function Tabs({ value, onChange, tabs }) {
   return (
-    <div className="inline-flex flex-wrap h-auto items-center gap-1 rounded-lg border border-border bg-card p-1">
+    <div className="abas">
       {tabs.map((t) => (
-        <button
-          key={t.value}
-          onClick={() => onChange(t.value)}
-          className={cn(
-            'rounded-md px-3 py-1.5 text-sm font-medium transition',
-            value === t.value ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
+        <button key={t.value} onClick={() => onChange(t.value)} className={cn('aba', value === t.value && 'aba-ativa')}>
           {t.label}
         </button>
       ))}
@@ -202,16 +163,9 @@ export function Tabs({ value, onChange, tabs }) {
 /** Grupo de botões de filtro (ex: ativos / inativos / todos). */
 export function Segmented({ value, onChange, options }) {
   return (
-    <div className="flex gap-1 rounded-lg bg-muted p-1">
+    <div className="segmentado">
       {options.map((o) => (
-        <button
-          key={o.value}
-          onClick={() => onChange(o.value)}
-          className={cn(
-            'rounded-md px-3 py-1.5 text-xs font-medium transition',
-            value === o.value ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground',
-          )}
-        >
+        <button key={o.value} onClick={() => onChange(o.value)} className={cn('segmento', value === o.value && 'segmento-ativo')}>
           {o.label}
         </button>
       ))}
@@ -228,22 +182,25 @@ export function Switch({ checked, onChange, disabled, label }) {
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={cn(
-        'relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50',
-        checked ? 'bg-primary' : 'bg-input',
-      )}
-    >
-      <span className={cn('inline-block h-4 w-4 rounded-full bg-white shadow transition-transform', checked ? 'translate-x-4' : 'translate-x-0.5')} />
-    </button>
+      className={cn('interruptor', checked && 'interruptor-ligado')}
+    />
   )
 }
 
 export function Stat({ label, value, sub, large }) {
   return (
-    <div className="rounded-xl border border-border bg-background/50 p-4">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={cn('font-display font-semibold mt-1', large ? 'text-3xl' : 'text-2xl')}>{value}</p>
-      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+    <div className={cn('indicador', large && 'indicador-grande')}>
+      <p className="indicador-rotulo">{label}</p>
+      <p className="indicador-valor">{value}</p>
+      {sub && <p className="indicador-sub">{sub}</p>}
+    </div>
+  )
+}
+
+export function Barra({ pct, cor }) {
+  return (
+    <div className="barra">
+      <span style={{ width: `${Math.max(0, Math.min(100, pct))}%`, background: cor }} />
     </div>
   )
 }

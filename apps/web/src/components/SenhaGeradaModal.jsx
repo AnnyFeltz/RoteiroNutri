@@ -26,22 +26,23 @@ export function SenhaGeradaModal({ dados, onClose, titulo = 'Acesso do paciente 
       footer={
         <>
           <Button variant="outline" onClick={copiar}>
-            <Copy className="h-4 w-4" /> Copiar
+            <Copy /> Copiar
           </Button>
           <Button onClick={onClose}>Pronto</Button>
         </>
       }
     >
-      <div className="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-4 space-y-2 text-sm">
+      <div className="credenciais pilha-sm">
         <p>
-          <span className="text-muted-foreground">E-mail:</span> <span className="font-medium">{dados.email}</span>
+          <span className="texto-suave">E-mail:</span> <span className="texto-medio">{dados.email}</span>
         </p>
         <p>
-          <span className="text-muted-foreground">Senha:</span>{' '}
-          <code className="px-2 py-0.5 rounded bg-background border border-border font-mono">{dados.senha}</code>
+          <span className="texto-suave">Senha:</span> <code className="codigo">{dados.senha}</code>
         </p>
       </div>
-      <p className="text-xs text-muted-foreground mt-3">Por segurança, esta senha não poderá ser exibida novamente.</p>
+      <p className="dica" style={{ marginTop: 12 }}>
+        Por segurança, esta senha não poderá ser exibida novamente.
+      </p>
     </Modal>
   )
 }

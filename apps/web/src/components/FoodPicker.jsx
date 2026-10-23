@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Loader2 } from 'lucide-react'
 import { iconeAlimento } from '@RoteiroNutri/shared'
-import { Input, Modal, Select, Spinner } from './ui'
+import { Input, Modal, Select } from './ui'
 import { api } from '../lib/api'
 import { useCategoriasTaco, useDebounce } from '../lib/hooks'
 
@@ -19,10 +20,10 @@ export function FoodPicker({ open, onClose, onPick, titulo = 'Tabela TACO' }) {
   })
 
   return (
-    <Modal open={open} onClose={onClose} title={titulo} description="Busque um alimento (valores por 100g)." className="max-w-xl">
-      <div className="flex flex-col sm:flex-row gap-2">
+    <Modal open={open} onClose={onClose} title={titulo} description="Busque um alimento (valores por 100g)." largo>
+      <div className="seletor-alimento-filtros">
         <Input autoFocus value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Ex: arroz integral" />
-        <Select value={categoria} onChange={(e) => setCategoria(e.target.value)} className="sm:max-w-[200px]">
+        <Select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
           <option value="">Todas as categorias</option>
           {categorias.map((c) => (
             <option key={c.nome} value={c.nome}>
@@ -31,10 +32,10 @@ export function FoodPicker({ open, onClose, onPick, titulo = 'Tabela TACO' }) {
           ))}
         </Select>
       </div>
-      <div className="mt-3 max-h-80 overflow-auto space-y-1 relative">
+      <div className="lista-rolavel" style={{ marginTop: 12, maxHeight: 320 }}>
         {isFetching && !data && (
-          <div className="py-8 flex justify-center">
-            <Spinner />
+          <div className="carregando" style={{ padding: '32px 0' }}>
+            <Loader2 className="girando" />
           </div>
         )}
         {data?.itens.map((a) => (
@@ -44,20 +45,22 @@ export function FoodPicker({ open, onClose, onPick, titulo = 'Tabela TACO' }) {
               onPick(a)
               setBusca('')
             }}
-            className="w-full text-left flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted transition"
+            className="opcao-alimento"
           >
-            <span className="text-xl">{iconeAlimento(a)}</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{a.nome}</p>
-              <p className="text-xs text-muted-foreground">
+            <span className="emoji">{iconeAlimento(a)}</span>
+            <span className="expandir">
+              <span className="texto-medio" style={{ display: 'block' }}>
+                {a.nome}
+              </span>
+              <span className="texto-pequeno texto-suave">
                 {a.kcal100g} kcal · C {a.carboidratoG}g · P {a.proteinaG}g · G {a.gorduraG}g
-              </p>
-            </div>
+              </span>
+            </span>
           </button>
         ))}
-        {data && data.itens.length === 0 && <p className="text-sm text-muted-foreground text-center py-6">Nenhum alimento encontrado.</p>}
+        {data && data.itens.length === 0 && <p className="centro texto-suave" style={{ padding: '24px 0' }}>Nenhum alimento encontrado.</p>}
         {data && data.total > data.itens.length && (
-          <p className="text-xs text-muted-foreground text-center py-2">
+          <p className="centro texto-pequeno texto-suave" style={{ padding: '8px 0' }}>
             Mostrando {data.itens.length} de {data.total}. Refine a busca.
           </p>
         )}

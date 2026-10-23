@@ -26,103 +26,97 @@ export default function Planos() {
   const comPlano = data.filter((r) => r.planoAtivo).length
 
   return (
-    <div className="space-y-6">
+    <div className="pagina">
       <div>
-        <h1 className="text-3xl font-semibold">Planos Alimentares</h1>
-        <p className="text-muted-foreground mt-1">Visualize, edite e versione os planos de todos os pacientes ativos.</p>
+        <h1 className="titulo-pagina">Planos Alimentares</h1>
+        <p className="subtitulo-pagina">Visualize, edite e versione os planos de todos os pacientes ativos.</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard rotulo="Pacientes ativos" valor={data.length} icone={<Apple className="h-4 w-4" />} />
-        <StatCard rotulo="Planos ativos" valor={comPlano} icone={<CheckCircle2 className="h-4 w-4 text-primary" />} />
-        <StatCard rotulo="Sem plano" valor={data.length - comPlano} icone={<AlertCircle className="h-4 w-4 text-terracotta" />} />
+      <div className="grade grade-3-sm">
+        <StatCard rotulo="Pacientes ativos" valor={data.length} icone={<Apple size={16} />} />
+        <StatCard rotulo="Planos ativos" valor={comPlano} icone={<CheckCircle2 size={16} className="cor-primaria" />} />
+        <StatCard rotulo="Sem plano" valor={data.length - comPlano} icone={<AlertCircle size={16} className="cor-terracota" />} />
       </div>
 
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar paciente..." className="pl-9 bg-background" />
-          </div>
-          <Segmented
-            value={filtro}
-            onChange={setFiltro}
-            options={[
-              { value: 'todos', label: 'Todos' },
-              { value: 'com-plano', label: 'Com plano' },
-              { value: 'sem-plano', label: 'Sem plano' },
-            ]}
-          />
+      <Card className="card-compacto filtros">
+        <div className="busca">
+          <Search />
+          <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar paciente..." />
         </div>
+        <Segmented
+          value={filtro}
+          onChange={setFiltro}
+          options={[
+            { value: 'todos', label: 'Todos' },
+            { value: 'com-plano', label: 'Com plano' },
+            { value: 'sem-plano', label: 'Sem plano' },
+          ]}
+        />
       </Card>
 
-      <div className="space-y-3">
+      <div className="pilha">
         {linhas.length === 0 && (
-          <Card className="p-12 text-center">
-            <Apple className="h-12 w-12 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-sm text-muted-foreground">Nenhum paciente encontrado.</p>
+          <Card className="card-vazio">
+            <Apple />
+            <p>Nenhum paciente encontrado.</p>
           </Card>
         )}
         {linhas.map(({ paciente: p, planoAtivo: ativo, totalVersoes }) => (
-          <Card key={p.id} className="p-5 hover:shadow-sm transition">
-            <div className="flex flex-wrap items-center gap-4">
-              <Avatar nome={p.nome} cor={p.avatarCor} className="h-12 w-12" />
-              <div className="flex-1 min-w-[200px]">
-                <p className="font-medium">{p.nome}</p>
-                <p className="text-xs text-muted-foreground">
-                  {objetivoLabel(p.objetivo)}
-                  {p.idade ? ` · ${p.idade} anos` : ''} · {totalVersoes} {totalVersoes === 1 ? 'versão' : 'versões'} no histórico
-                </p>
-              </div>
+          <Card key={p.id} className="linha linha-quebra" style={{ gap: 16 }}>
+            <Avatar nome={p.nome} cor={p.avatarCor} tamanho="md" />
+            <div className="expandir" style={{ minWidth: 200 }}>
+              <p className="texto-medio">{p.nome}</p>
+              <p className="texto-pequeno texto-suave">
+                {objetivoLabel(p.objetivo)}
+                {p.idade ? ` · ${p.idade} anos` : ''} · {totalVersoes} {totalVersoes === 1 ? 'versão' : 'versões'} no histórico
+              </p>
+            </div>
 
-              {ativo ? (
-                <div className="flex items-center gap-6 text-sm">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Plano ativo</p>
-                    <p className="font-medium flex items-center gap-1.5">
-                      <Badge variant="outline" className="font-mono text-[10px] py-0">
-                        v{ativo.versao}
-                      </Badge>
-                      {ativo.nome}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Meta</p>
-                    <p className="font-mono text-primary">{ativo.kcalAlvo} kcal</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Soma refeições</p>
-                    <p className="font-mono">{ativo.kcalTotal} kcal</p>
-                  </div>
+            {ativo ? (
+              <div className="linha" style={{ gap: 24 }}>
+                <div>
+                  <p className="texto-pequeno texto-suave">Plano ativo</p>
+                  <p className="texto-medio linha-sm">
+                    <Badge variant="outline" className="mono selo-mini">
+                      v{ativo.versao}
+                    </Badge>
+                    {ativo.nome}
+                  </p>
                 </div>
-              ) : (
-                <Badge variant="outline" className="text-terracotta border-terracotta/40">
-                  Sem plano ativo
-                </Badge>
-              )}
+                <div className="direita">
+                  <p className="texto-pequeno texto-suave">Meta</p>
+                  <p className="mono cor-primaria">{ativo.kcalAlvo} kcal</p>
+                </div>
+                <div className="direita">
+                  <p className="texto-pequeno texto-suave">Soma refeições</p>
+                  <p className="mono">{ativo.kcalTotal} kcal</p>
+                </div>
+              </div>
+            ) : (
+              <Badge variant="terracota">Sem plano ativo</Badge>
+            )}
 
-              <div className="flex gap-2 ml-auto">
-                {ativo ? (
-                  <>
-                    <Link to={`/nutri/pacientes/${p.id}/plano/${ativo.id}`}>
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-3.5 w-3.5" /> Ver
-                      </Button>
-                    </Link>
-                    <Link to={`/nutri/pacientes/${p.id}/plano/${ativo.id}/editar`}>
-                      <Button size="sm">
-                        <Pencil className="h-3.5 w-3.5" /> Editar
-                      </Button>
-                    </Link>
-                  </>
-                ) : (
-                  <Link to={`/nutri/pacientes/${p.id}/plano/novo`}>
-                    <Button size="sm">
-                      <Plus className="h-3.5 w-3.5" /> Criar plano
+            <div className="acoes empurrar">
+              {ativo ? (
+                <>
+                  <Link to={`/nutri/pacientes/${p.id}/plano/${ativo.id}`}>
+                    <Button variant="outline" size="sm">
+                      <Eye /> Ver
                     </Button>
                   </Link>
-                )}
-              </div>
+                  <Link to={`/nutri/pacientes/${p.id}/plano/${ativo.id}/editar`}>
+                    <Button size="sm">
+                      <Pencil /> Editar
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <Link to={`/nutri/pacientes/${p.id}/plano/novo`}>
+                  <Button size="sm">
+                    <Plus /> Criar plano
+                  </Button>
+                </Link>
+              )}
             </div>
           </Card>
         ))}
@@ -133,12 +127,14 @@ export default function Planos() {
 
 function StatCard({ rotulo, valor, icone }) {
   return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">{rotulo}</p>
+    <Card className="card-compacto">
+      <div className="linha entre">
+        <p className="texto-pequeno texto-suave">{rotulo}</p>
         {icone}
       </div>
-      <p className="text-3xl font-display font-semibold mt-1">{valor}</p>
+      <p className="numero-medio" style={{ marginTop: 4 }}>
+        {valor}
+      </p>
     </Card>
   )
 }

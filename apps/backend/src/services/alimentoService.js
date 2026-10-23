@@ -10,8 +10,10 @@ const normalizar = (texto) =>
 
 async function carregar() {
   if (!cache) {
-    const alimentos = await Alimento.findAll({ order: [['nome', 'ASC']] });
-    cache = alimentos.map((a) => ({ ...a.toJSON(), _busca: normalizar(a.nome) }));
+    const alimentos = await Alimento.findAll();
+    cache = alimentos
+      .map((a) => ({ ...a.toJSON(), _busca: normalizar(a.nome) }))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   }
   return cache;
 }

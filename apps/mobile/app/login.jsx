@@ -4,7 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Redirect, useRouter } from 'expo-router'
 import { Leaf } from 'lucide-react-native'
 import { Botao, Campo, Texto, estilos } from '../components/ui'
+import { loginSchema } from '@RoteiroNutri/shared'
 import { useAuth } from '../lib/auth'
+import { validar } from '../lib/validacao'
 import { cores } from '../lib/tema'
 
 // RF16 - Login do paciente
@@ -20,10 +22,11 @@ export default function Login() {
 
   const enviar = async () => {
     setErro('')
-    if (!email || !senha) return setErro('Informe e-mail e senha.')
+    const { dados, erro: invalido } = validar(loginSchema, { email, senha })
+    if (invalido) return setErro(invalido)
     setCarregando(true)
     try {
-      await entrar(email.trim(), senha)
+      await entrar(dados.email, dados.senha)
       router.replace('/inicio')
     } catch (e) {
       setErro(e.message)

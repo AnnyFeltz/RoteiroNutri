@@ -20,100 +20,102 @@ export default function PlanoVisualizar() {
   const g = macroGramas(plano.kcalAlvo, plano)
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between flex-wrap gap-3 no-print">
-        <Link to={`/nutri/pacientes/${id}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
-          <ArrowLeft className="h-4 w-4" /> Voltar para {p.nome}
+    <div className="pagina" style={{ gap: 20 }}>
+      <div className="cabecalho-pagina nao-imprimir" style={{ alignItems: 'center' }}>
+        <Link to={`/nutri/pacientes/${id}`} className="link-voltar">
+          <ArrowLeft size={16} /> Voltar para {p.nome}
         </Link>
-        <div className="flex gap-2 flex-wrap">
+        <div className="acoes">
           <Button variant="outline" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" /> Imprimir / salvar PDF
+            <Printer /> Imprimir / salvar PDF
           </Button>
           <Link to={`/nutri/pacientes/${id}/ficha`}>
             <Button variant="outline">
-              <FileDown className="h-4 w-4" /> Ficha completa (PDF)
+              <FileDown /> Ficha completa (PDF)
             </Button>
           </Link>
           <Button onClick={() => nav(`/nutri/pacientes/${id}/plano/${plano.id}/editar`)}>
-            <Pencil className="h-4 w-4" /> {plano.ativo ? 'Editar plano' : 'Criar nova versão a partir desta'}
+            <Pencil /> {plano.ativo ? 'Editar plano' : 'Criar nova versão a partir desta'}
           </Button>
         </div>
       </div>
 
-      <Card className="p-6 bg-gradient-to-br from-primary/10 via-card to-card print-page">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <Card className="card-amplo card-destaque-verde folha-impressao">
+        <div className="cabecalho-pagina">
           <div>
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <Badge variant="outline" className="font-mono">
+            <div className="linha-sm linha-quebra" style={{ marginBottom: 8 }}>
+              <Badge variant="outline" className="mono">
                 v{plano.versao}
               </Badge>
               {plano.ativo ? (
                 <Badge>
-                  <CheckCircle2 className="h-3 w-3" /> Ativo
+                  <CheckCircle2 /> Ativo
                 </Badge>
               ) : (
                 <Badge variant="muted">Encerrado</Badge>
               )}
-              <span className="text-xs text-muted-foreground">Criado em {dataHoraBR(plano.createdAt, true)}</span>
+              <span className="texto-pequeno texto-suave">Criado em {dataHoraBR(plano.createdAt, true)}</span>
             </div>
-            <h1 className="text-3xl font-display font-semibold">{plano.nome}</h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h1 className="titulo-pagina">{plano.nome}</h1>
+            <p className="texto-suave" style={{ marginTop: 4 }}>
               Paciente: {p.nome}
               {p.idade ? ` · ${p.idade} anos` : ''} · objetivo {objetivoLabel(p.objetivo).toLowerCase()}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-xs text-muted-foreground">Calorias alvo</p>
-            <p className="text-4xl font-display font-semibold text-primary">{plano.kcalAlvo}</p>
-            <p className="text-xs text-muted-foreground">kcal/dia · soma: {total.kcal} kcal</p>
+          <div className="direita">
+            <p className="texto-pequeno texto-suave">Calorias alvo</p>
+            <p className="numero-grande cor-primaria">{plano.kcalAlvo}</p>
+            <p className="texto-pequeno texto-suave">kcal/dia · soma: {total.kcal} kcal</p>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-6">
-          <MacroPill rotulo="Carboidratos" pct={plano.pctCarbo} gramas={g.carbo} cor="var(--chart-3)" />
-          <MacroPill rotulo="Proteínas" pct={plano.pctProteina} gramas={g.proteina} cor="var(--primary)" />
-          <MacroPill rotulo="Gorduras" pct={plano.pctGordura} gramas={g.gordura} cor="var(--terracotta)" />
+        <div className="grade grade-3" style={{ gap: 12, marginTop: 24 }}>
+          <MacroPill rotulo="Carboidratos" pct={plano.pctCarbo} gramas={g.carbo} cor="var(--grafico-carbo)" />
+          <MacroPill rotulo="Proteínas" pct={plano.pctProteina} gramas={g.proteina} cor="var(--primaria)" />
+          <MacroPill rotulo="Gorduras" pct={plano.pctGordura} gramas={g.gordura} cor="var(--terracota)" />
         </div>
       </Card>
 
-      <div className="space-y-4">
+      <div className="pilha" style={{ gap: 16 }}>
         {plano.refeicoes.map((r) => (
-          <Card key={r.id} className="p-5">
-            <div className="flex items-center justify-between mb-4 pb-4 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                  <Apple className="h-5 w-5" />
+          <Card key={r.id}>
+            <div className="linha entre refeicao-topo">
+              <div className="linha">
+                <div className="icone-caixa icone-caixa-primaria">
+                  <Apple />
                 </div>
                 <div>
-                  <h3 className="font-display font-semibold">{r.nome}</h3>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> {r.horario}
+                  <h3 className="titulo-card">{r.nome}</h3>
+                  <p className="texto-pequeno texto-suave linha-sm" style={{ gap: 4 }}>
+                    <Clock size={12} /> {r.horario}
                   </p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-lg font-mono text-primary">{totaisRefeicao(r).kcal} kcal</p>
-                <p className="text-xs text-muted-foreground">
+              <div className="direita">
+                <p className="mono cor-primaria" style={{ fontSize: 18 }}>
+                  {totaisRefeicao(r).kcal} kcal
+                </p>
+                <p className="texto-pequeno texto-suave">
                   {r.itens.length} alimento{r.itens.length !== 1 && 's'}
                 </p>
               </div>
             </div>
             {r.itens.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">Sem alimentos nesta refeição.</p>
+              <p className="texto-suave texto-italico">Sem alimentos nesta refeição.</p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="pilha-sm">
                 {r.itens.map((item) => {
                   const c = calcularAlimento(item.alimento, item.gramas)
                   return (
-                    <li key={item.id} className="flex items-center gap-3 p-3 rounded-lg bg-background/60 border border-border">
-                      <span className="text-xl">{iconeAlimento(item.alimento)}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{item.alimento.nome}</p>
-                        <p className="text-xs text-muted-foreground">
+                    <li key={item.id} className="item-plano">
+                      <span className="emoji">{iconeAlimento(item.alimento)}</span>
+                      <div className="expandir">
+                        <p className="texto-medio">{item.alimento.nome}</p>
+                        <p className="texto-pequeno texto-suave">
                           {item.gramas}g · {c.kcal} kcal · C {c.carbo}g · P {c.proteina}g · G {c.gordura}g
                         </p>
                         {item.substitutos.length > 0 && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            <span className="text-primary font-medium">
+                          <p className="texto-pequeno texto-suave" style={{ marginTop: 4 }}>
+                            <span className="cor-primaria texto-medio">
                               {item.substitutos.length} equivalente{item.substitutos.length > 1 && 's'}:
                             </span>{' '}
                             {item.substitutos.map((s) => `${s.alimento.nome} (${s.gramas}g)`).join(', ')}
@@ -134,13 +136,15 @@ export default function PlanoVisualizar() {
 
 function MacroPill({ rotulo, pct, gramas, cor }) {
   return (
-    <div className="p-3 rounded-lg bg-background/60 border border-border">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="h-2 w-2 rounded-full" style={{ background: cor }} />
+    <div className="indicador" style={{ padding: 12 }}>
+      <div className="linha-sm texto-pequeno texto-suave">
+        <span className="ponto" style={{ background: cor }} />
         {rotulo}
       </div>
-      <p className="text-xl font-display font-semibold mt-1">{pct}%</p>
-      <p className="text-xs text-muted-foreground">{gramas}g</p>
+      <p className="numero-pequeno" style={{ marginTop: 4 }}>
+        {pct}%
+      </p>
+      <p className="texto-pequeno texto-suave">{gramas}g</p>
     </div>
   )
 }

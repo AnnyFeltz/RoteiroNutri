@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, ChevronRight, Trash2, ClipboardList, KeyRound, Pencil,
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import {
   OBJETIVO_LABEL, imc, classificacaoImc, macroGramas, totaisRefeicao, totaisPlano, calcularAlimento, iconeAlimento,
+  atualizarPacienteSchema, evolucaoSchema, consultaSchema, atualizarConsultaSchema,
 } from '@RoteiroNutri/shared'
 import {
   Avatar, Badge, Button, Card, Carregando, ConfirmDialog, ErroCarregamento, Field, Input, Modal, Select, Stat, Tabs, Textarea,
@@ -13,6 +14,7 @@ import {
 import { SenhaGeradaModal } from '../components/SenhaGeradaModal'
 import { api } from '../lib/api'
 import { dataBR, dataHoraBR, isoLocal, kg, objetivoLabel, sinal } from '../lib/format'
+import { validar } from '../lib/validacao'
 
 const ABAS = [
   { value: 'resumo', label: 'Resumo' },
@@ -22,6 +24,9 @@ const ABAS = [
   { value: 'evolucao', label: 'Evolução' },
   { value: 'consultas', label: 'Consultas' },
 ]
+
+const TOOLTIP = { background: 'var(--card)', border: '1px solid var(--borda)', borderRadius: 8 }
+const EIXO = { fontSize: 12, fill: 'var(--texto-suave)' }
 
 // Prontuário do paciente: RF05, RF08, RF21, RF22
 export default function PacienteDetalhe() {
@@ -63,53 +68,51 @@ export default function PacienteDetalhe() {
   const plano = p.planoAtivo
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center gap-2 text-sm">
-        <Link to="/nutri/pacientes" className="text-muted-foreground hover:text-foreground flex items-center gap-1">
-          <ArrowLeft className="h-4 w-4" /> Pacientes
+    <div className="pagina" style={{ gap: 20 }}>
+      <div className="linha-sm">
+        <Link to="/nutri/pacientes" className="link-voltar">
+          <ArrowLeft size={16} /> Pacientes
         </Link>
-        <ChevronRight className="h-3 w-3 text-muted-foreground" />
-        <span className="font-medium">{p.nome}</span>
+        <ChevronRight size={12} className="texto-suave" />
+        <span className="texto-medio">{p.nome}</span>
       </div>
 
-      <Card className="p-6">
-        <div className="flex flex-wrap items-center gap-4 justify-between">
-          <div className="flex items-center gap-4">
-            <Avatar nome={p.nome} cor={p.avatarCor} className="h-16 w-16" textClassName="text-lg" />
-            <div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl font-semibold">{p.nome}</h1>
-                {p.ativo ? <Badge>Paciente ativo</Badge> : <Badge variant="outline">Inativo</Badge>}
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                {[
-                  p.idade && `${p.idade} anos`,
-                  p.alturaCm && `${(p.alturaCm / 100).toFixed(2)} m`,
-                  p.pesoAtualKg && kg(p.pesoAtualKg),
-                  valorImc && `IMC ${valorImc.toFixed(1)} (${classificacaoImc(valorImc)})`,
-                ]
-                  .filter(Boolean)
-                  .join(' · ') || p.email}
-              </p>
+      <Card className="card-amplo cabecalho-pagina" style={{ alignItems: 'center' }}>
+        <div className="linha" style={{ gap: 16 }}>
+          <Avatar nome={p.nome} cor={p.avatarCor} tamanho="lg" />
+          <div>
+            <div className="linha linha-quebra">
+              <h1 className="numero-medio">{p.nome}</h1>
+              {p.ativo ? <Badge>Paciente ativo</Badge> : <Badge variant="muted">Inativo</Badge>}
             </div>
+            <p className="texto-suave" style={{ marginTop: 4 }}>
+              {[
+                p.idade && `${p.idade} anos`,
+                p.alturaCm && `${(p.alturaCm / 100).toFixed(2)} m`,
+                p.pesoAtualKg && kg(p.pesoAtualKg),
+                valorImc && `IMC ${valorImc.toFixed(1)} (${classificacaoImc(valorImc)})`,
+              ]
+                .filter(Boolean)
+                .join(' · ') || p.email}
+            </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" onClick={() => setConfirmarSenha(true)} title="Gerar nova senha de acesso ao app">
-              <KeyRound className="h-4 w-4" /> Nova senha
+        </div>
+        <div className="acoes">
+          <Button variant="outline" onClick={() => setConfirmarSenha(true)} title="Gerar nova senha de acesso ao app">
+            <KeyRound /> Nova senha
+          </Button>
+          <Link to={`/nutri/pacientes/${p.id}/ficha`}>
+            <Button variant="outline">
+              <ClipboardList /> Ficha médica/nutricional
             </Button>
-            <Link to={`/nutri/pacientes/${p.id}/ficha`}>
-              <Button variant="outline">
-                <ClipboardList className="h-4 w-4" /> Ficha médica/nutricional
+          </Link>
+          {p.ativo && (
+            <Link to={plano ? `/nutri/pacientes/${p.id}/plano/${plano.id}/editar` : `/nutri/pacientes/${p.id}/plano/novo`}>
+              <Button>
+                <Plus /> {plano ? 'Editar plano' : 'Novo plano'}
               </Button>
             </Link>
-            {p.ativo && (
-              <Link to={plano ? `/nutri/pacientes/${p.id}/plano/${plano.id}/editar` : `/nutri/pacientes/${p.id}/plano/novo`}>
-                <Button>
-                  <Plus className="h-4 w-4" /> {plano ? 'Editar plano' : 'Novo plano'}
-                </Button>
-              </Link>
-            )}
-          </div>
+          )}
         </div>
       </Card>
 
@@ -140,37 +143,39 @@ function ResumoTab({ p, plano }) {
   const valorImc = imc(p.pesoAtualKg, p.alturaCm)
   const g = plano ? macroGramas(plano.kcalAlvo, plano) : null
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-      <Card className="p-5">
-        <h4 className="text-sm text-muted-foreground mb-3">Objetivo</h4>
-        <div className="flex items-center gap-2">
-          <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">🎯</span>
-          <p className="font-medium">{objetivoLabel(p.objetivo)}</p>
+    <div className="grade grade-3-lg" style={{ gap: 20 }}>
+      <Card>
+        <h4 className="card-subtitulo">Objetivo</h4>
+        <div className="linha-sm">
+          <span className="icone-caixa icone-caixa-primaria" style={{ width: 32, height: 32, borderRadius: '50%' }}>
+            🎯
+          </span>
+          <p className="texto-medio">{objetivoLabel(p.objetivo)}</p>
         </div>
-        <div className="mt-5 space-y-1 text-sm">
+        <div className="pilha-sm" style={{ marginTop: 20 }}>
           <p>
-            <span className="text-muted-foreground">Início do acompanhamento:</span> {dataBR(p.dataInicio)}
+            <span className="texto-suave">Início do acompanhamento:</span> {dataBR(p.dataInicio)}
           </p>
           <p>
-            <span className="text-muted-foreground">Telefone:</span> {p.telefone || '—'}
+            <span className="texto-suave">Telefone:</span> {p.telefone || '—'}
           </p>
           {plano && (
-            <p className="mt-2">
-              <span className="text-muted-foreground">Plano atual:</span>
+            <p style={{ marginTop: 8 }}>
+              <span className="texto-suave">Plano atual:</span>
               <br />
-              <span className="font-medium">
+              <span className="texto-medio">
                 {plano.nome} (v{plano.versao})
               </span>
               <br />
-              <span className="text-xs text-muted-foreground">Criado em {dataHoraBR(plano.createdAt)}</span>
+              <span className="texto-pequeno texto-suave">Criado em {dataHoraBR(plano.createdAt)}</span>
             </p>
           )}
         </div>
       </Card>
 
-      <Card className="p-5 lg:col-span-2">
-        <h4 className="text-sm text-muted-foreground mb-3">Dados principais</h4>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <Card className="ocupa-2-lg">
+        <h4 className="card-subtitulo">Dados principais</h4>
+        <div className="grade grade-2 grade-3-md" style={{ gap: 12 }}>
           <Stat label="Peso atual" value={kg(p.pesoAtualKg)} />
           <Stat label="Peso inicial" value={kg(p.pesoInicialKg)} />
           <Stat label="Peso alvo" value={kg(p.pesoMetaKg)} />
@@ -180,49 +185,42 @@ function ResumoTab({ p, plano }) {
         </div>
       </Card>
 
-      <Card className="p-5 lg:col-span-2">
-        <h4 className="text-sm text-muted-foreground mb-3">Resumo do plano atual</h4>
+      <Card className="ocupa-2-lg">
+        <h4 className="card-subtitulo">Resumo do plano atual</h4>
         {plano ? (
-          <ul className="space-y-2 text-sm">
-            <li className="flex justify-between">
-              <span>Calorias diárias</span>
-              <span className="font-medium">{plano.kcalAlvo} kcal</span>
-            </li>
-            <li className="flex justify-between">
-              <span>Proteínas</span>
-              <span className="font-medium">
-                {g.proteina} g ({plano.pctProteina}%)
-              </span>
-            </li>
-            <li className="flex justify-between">
-              <span>Carboidratos</span>
-              <span className="font-medium">
-                {g.carbo} g ({plano.pctCarbo}%)
-              </span>
-            </li>
-            <li className="flex justify-between">
-              <span>Gorduras</span>
-              <span className="font-medium">
-                {g.gordura} g ({plano.pctGordura}%)
-              </span>
-            </li>
+          <ul className="pilha-sm">
+            <LinhaValor rotulo="Calorias diárias" valor={`${plano.kcalAlvo} kcal`} />
+            <LinhaValor rotulo="Proteínas" valor={`${g.proteina} g (${plano.pctProteina}%)`} />
+            <LinhaValor rotulo="Carboidratos" valor={`${g.carbo} g (${plano.pctCarbo}%)`} />
+            <LinhaValor rotulo="Gorduras" valor={`${g.gordura} g (${plano.pctGordura}%)`} />
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">Nenhum plano ativo. Crie um plano alimentar para este paciente.</p>
+          <p className="texto-suave">Nenhum plano ativo. Crie um plano alimentar para este paciente.</p>
         )}
       </Card>
 
-      <Card className="p-5">
-        <h4 className="text-sm text-muted-foreground mb-3">Próxima consulta</h4>
-        <p className="text-2xl font-display font-semibold text-primary">{p.proximaConsulta ? dataBR(p.proximaConsulta.data) : '—'}</p>
+      <Card>
+        <h4 className="card-subtitulo">Próxima consulta</h4>
+        <p className="numero-medio cor-primaria">{p.proximaConsulta ? dataBR(p.proximaConsulta.data) : '—'}</p>
         {p.proximaConsulta && (
-          <p className="text-sm text-muted-foreground">
+          <p className="texto-suave">
             {p.proximaConsulta.horario} · {p.proximaConsulta.tipo}
           </p>
         )}
-        <p className="text-xs text-muted-foreground mt-1">Última: {p.ultimaConsulta ? dataBR(p.ultimaConsulta.data) : '—'}</p>
+        <p className="texto-pequeno texto-suave" style={{ marginTop: 4 }}>
+          Última: {p.ultimaConsulta ? dataBR(p.ultimaConsulta.data) : '—'}
+        </p>
       </Card>
     </div>
+  )
+}
+
+function LinhaValor({ rotulo, valor }) {
+  return (
+    <li className="linha entre">
+      <span>{rotulo}</span>
+      <span className="texto-medio">{valor}</span>
+    </li>
   )
 }
 
@@ -236,10 +234,14 @@ function AnamneseTab({ p, onSalvar, salvando }) {
     recordatorioAlimentar: p.recordatorioAlimentar || '',
   })
   const set = (c) => (e) => setD({ ...d, [c]: e.target.value })
+  const salvar = () => {
+    const dados = validar(atualizarPacienteSchema, d)
+    if (dados) onSalvar(dados)
+  }
   return (
-    <Card className="p-6 space-y-5">
-      <h3 className="font-display font-semibold text-lg">Anamnese</h3>
-      <div className="grid md:grid-cols-2 gap-5">
+    <Card className="card-amplo pilha-lg">
+      <h3 className="titulo-secao">Anamnese</h3>
+      <div className="grade grade-2-md" style={{ gap: 20 }}>
         <Field label="Objetivo">
           {(id) => (
             <Select id={id} value={d.objetivo} onChange={set('objetivo')}>
@@ -253,13 +255,13 @@ function AnamneseTab({ p, onSalvar, salvando }) {
         </Field>
         <Field label="Alergias e intolerâncias">{(id) => <Input id={id} value={d.alergias} onChange={set('alergias')} />}</Field>
       </div>
-      <Field label="Histórico médico">{(id) => <Textarea id={id} className="min-h-[100px]" value={d.historicoClinico} onChange={set('historicoClinico')} />}</Field>
-      <Field label="Estilo de vida e rotina">{(id) => <Textarea id={id} className="min-h-[100px]" value={d.estiloVida} onChange={set('estiloVida')} />}</Field>
+      <Field label="Histórico médico">{(id) => <Textarea id={id} value={d.historicoClinico} onChange={set('historicoClinico')} />}</Field>
+      <Field label="Estilo de vida e rotina">{(id) => <Textarea id={id} value={d.estiloVida} onChange={set('estiloVida')} />}</Field>
       <Field label="Recordatório alimentar (últimas 24h)">
-        {(id) => <Textarea id={id} className="min-h-[120px]" value={d.recordatorioAlimentar} onChange={set('recordatorioAlimentar')} />}
+        {(id) => <Textarea id={id} className="campo-alto" value={d.recordatorioAlimentar} onChange={set('recordatorioAlimentar')} />}
       </Field>
-      <div className="flex justify-end">
-        <Button onClick={() => onSalvar(d)} loading={salvando}>
+      <div className="linha" style={{ justifyContent: 'flex-end' }}>
+        <Button onClick={salvar} loading={salvando}>
           Salvar anamnese
         </Button>
       </div>
@@ -282,14 +284,26 @@ function AvaliacaoTab({ p, onSalvar, salvando }) {
     gorduraPct: p.gorduraPct ?? '',
     massaMagraPct: p.massaMagraPct ?? '',
   })
+  const [erros, setErros] = useState({})
   const set = (c) => (e) => setD({ ...d, [c]: e.target.value })
   const valorImc = imc(Number(d.pesoAtualKg), Number(d.alturaCm))
 
+  const salvar = () => {
+    const dados = validar(atualizarPacienteSchema, d, setErros)
+    if (dados) onSalvar(dados)
+  }
+
+  const campo = (rotulo, chave, props = {}) => (
+    <Field label={rotulo} erro={erros[chave]}>
+      {(id) => <Input id={id} value={d[chave]} onChange={set(chave)} erro={erros[chave]} {...props} />}
+    </Field>
+  )
+
   return (
-    <div className="space-y-5">
-      <Card className="p-6">
-        <h3 className="font-display font-semibold text-lg mb-4">Avaliação física</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div className="pilha-lg">
+      <Card className="card-amplo">
+        <h3 className="card-titulo">Avaliação física</h3>
+        <div className="grade grade-2 grade-3-md">
           <Stat label="Peso atual" value={kg(p.pesoAtualKg)} large />
           <Stat label="IMC" value={valorImc ? valorImc.toFixed(1) : '—'} sub={valorImc ? classificacaoImc(valorImc) : undefined} large />
           <Stat label="% Gordura corporal" value={p.gorduraPct != null ? `${p.gorduraPct}%` : '—'} large />
@@ -299,14 +313,16 @@ function AvaliacaoTab({ p, onSalvar, salvando }) {
         </div>
       </Card>
 
-      <Card className="p-6">
-        <h3 className="font-display font-semibold text-lg mb-1">Editar dados do paciente</h3>
-        <p className="text-xs text-muted-foreground mb-4">Alterar o peso atual registra automaticamente uma nova pesagem na evolução.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Field label="Nome">{(id) => <Input id={id} value={d.nome} onChange={set('nome')} />}</Field>
-          <Field label="E-mail (login do app)">{(id) => <Input id={id} type="email" value={d.email} onChange={set('email')} />}</Field>
-          <Field label="Telefone">{(id) => <Input id={id} value={d.telefone} onChange={set('telefone')} />}</Field>
-          <Field label="Idade">{(id) => <Input id={id} type="number" value={d.idade} onChange={set('idade')} />}</Field>
+      <Card className="card-amplo">
+        <h3 className="titulo-secao">Editar dados do paciente</h3>
+        <p className="dica" style={{ marginBottom: 16 }}>
+          Alterar o peso atual registra automaticamente uma nova pesagem na evolução.
+        </p>
+        <div className="grade grade-2-sm grade-3-lg">
+          {campo('Nome', 'nome')}
+          {campo('E-mail (login do app)', 'email', { type: 'email' })}
+          {campo('Telefone', 'telefone')}
+          {campo('Idade', 'idade', { type: 'number' })}
           <Field label="Sexo">
             {(id) => (
               <Select id={id} value={d.sexo} onChange={set('sexo')}>
@@ -315,15 +331,15 @@ function AvaliacaoTab({ p, onSalvar, salvando }) {
               </Select>
             )}
           </Field>
-          <Field label="Altura (cm)">{(id) => <Input id={id} type="number" step="0.1" value={d.alturaCm} onChange={set('alturaCm')} />}</Field>
-          <Field label="Peso inicial (kg)">{(id) => <Input id={id} type="number" step="0.1" value={d.pesoInicialKg} onChange={set('pesoInicialKg')} />}</Field>
-          <Field label="Peso atual (kg)">{(id) => <Input id={id} type="number" step="0.1" value={d.pesoAtualKg} onChange={set('pesoAtualKg')} />}</Field>
-          <Field label="Peso alvo (kg)">{(id) => <Input id={id} type="number" step="0.1" value={d.pesoMetaKg} onChange={set('pesoMetaKg')} />}</Field>
-          <Field label="% Gordura corporal">{(id) => <Input id={id} type="number" step="0.1" value={d.gorduraPct} onChange={set('gorduraPct')} />}</Field>
-          <Field label="% Massa magra">{(id) => <Input id={id} type="number" step="0.1" value={d.massaMagraPct} onChange={set('massaMagraPct')} />}</Field>
+          {campo('Altura (cm)', 'alturaCm', { type: 'number', step: '0.1' })}
+          {campo('Peso inicial (kg)', 'pesoInicialKg', { type: 'number', step: '0.1' })}
+          {campo('Peso atual (kg)', 'pesoAtualKg', { type: 'number', step: '0.1' })}
+          {campo('Peso alvo (kg)', 'pesoMetaKg', { type: 'number', step: '0.1' })}
+          {campo('% Gordura corporal', 'gorduraPct', { type: 'number', step: '0.1' })}
+          {campo('% Massa magra', 'massaMagraPct', { type: 'number', step: '0.1' })}
         </div>
-        <div className="flex justify-end mt-5">
-          <Button onClick={() => onSalvar(d)} loading={salvando}>
+        <div className="linha" style={{ justifyContent: 'flex-end', marginTop: 20 }}>
+          <Button onClick={salvar} loading={salvando}>
             Salvar avaliação
           </Button>
         </div>
@@ -340,12 +356,12 @@ function PlanoTab({ p, plano }) {
   })
 
   return (
-    <div className="space-y-5">
+    <div className="pilha-lg">
       {!plano ? (
-        <Card className="p-10 text-center">
-          <p className="text-muted-foreground">Este paciente não possui plano alimentar ativo.</p>
+        <Card className="card-vazio">
+          <p>Este paciente não possui plano alimentar ativo.</p>
           {p.ativo && (
-            <Button onClick={() => nav(`/nutri/pacientes/${p.id}/plano/novo`)} className="mt-4">
+            <Button onClick={() => nav(`/nutri/pacientes/${p.id}/plano/novo`)} style={{ marginTop: 16 }}>
               Criar plano
             </Button>
           )}
@@ -355,23 +371,25 @@ function PlanoTab({ p, plano }) {
       )}
 
       {versoes && versoes.length > 0 && (
-        <Card className="p-6">
-          <h3 className="font-display font-semibold mb-3 flex items-center gap-2">
-            <History className="h-4 w-4 text-primary" /> Histórico de versões ({versoes.length})
+        <Card className="card-amplo">
+          <h3 className="titulo-secao linha-sm" style={{ marginBottom: 12 }}>
+            <History size={16} className="cor-primaria" /> Histórico de versões ({versoes.length})
           </h3>
-          <ul className="divide-y divide-border">
+          <ul className="lista-divisoria">
             {versoes.map((v) => (
-              <li key={v.id} className="py-2.5 flex flex-wrap items-center gap-3 text-sm">
-                <Badge variant="outline" className="font-mono">
+              <li key={v.id} className="linha linha-quebra" style={{ padding: '10px 0' }}>
+                <Badge variant="outline" className="mono">
                   v{v.versao}
                 </Badge>
-                <span className="font-medium flex-1 min-w-[160px]">{v.nome}</span>
-                <span className="text-muted-foreground">{dataHoraBR(v.createdAt)}</span>
-                <span className="text-muted-foreground">
+                <span className="texto-medio expandir" style={{ minWidth: 160 }}>
+                  {v.nome}
+                </span>
+                <span className="texto-suave">{dataHoraBR(v.createdAt)}</span>
+                <span className="texto-suave">
                   {v.kcalAlvo} kcal · {v.totalRefeicoes} refeições
                 </span>
                 {v.ativo ? <Badge>Ativo</Badge> : <Badge variant="muted">Encerrado</Badge>}
-                <Link to={`/nutri/pacientes/${p.id}/plano/${v.id}`} className="text-primary hover:underline">
+                <Link to={`/nutri/pacientes/${p.id}/plano/${v.id}`} className="link">
                   Ver
                 </Link>
               </li>
@@ -386,53 +404,53 @@ function PlanoTab({ p, plano }) {
 function PlanoResumoCard({ p, plano }) {
   const nav = useNavigate()
   const macros = [
-    { nome: 'Carboidratos', v: plano.pctCarbo, cor: 'var(--chart-3)' },
-    { nome: 'Proteínas', v: plano.pctProteina, cor: 'var(--primary)' },
-    { nome: 'Gorduras', v: plano.pctGordura, cor: 'var(--terracotta)' },
+    { nome: 'Carboidratos', v: plano.pctCarbo, cor: 'var(--grafico-carbo)' },
+    { nome: 'Proteínas', v: plano.pctProteina, cor: 'var(--primaria)' },
+    { nome: 'Gorduras', v: plano.pctGordura, cor: 'var(--terracota)' },
   ]
   const total = totaisPlano(plano)
   return (
-    <Card className="p-6">
-      <div className="flex flex-wrap justify-between items-start gap-3">
+    <Card className="card-amplo">
+      <div className="cabecalho-pagina">
         <div>
-          <h3 className="font-display font-semibold text-lg">
-            {plano.nome} <span className="text-sm text-muted-foreground font-sans">v{plano.versao}</span>
+          <h3 className="titulo-secao">
+            {plano.nome} <span className="texto-pequeno texto-suave">v{plano.versao}</span>
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="texto-suave">
             Plano ativo · criado em {dataHoraBR(plano.createdAt)} · soma das refeições: {total.kcal} kcal
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="acoes">
           <Button variant="outline" onClick={() => nav(`/nutri/pacientes/${p.id}/plano/${plano.id}`)}>
-            <FileDown className="h-4 w-4" /> Ver / exportar PDF
+            <FileDown /> Ver / exportar PDF
           </Button>
           <Button onClick={() => nav(`/nutri/pacientes/${p.id}/plano/${plano.id}/editar`)}>
-            <Pencil className="h-4 w-4" /> Editar plano
+            <Pencil /> Editar plano
           </Button>
         </div>
       </div>
-      <div className="grid md:grid-cols-3 gap-5 mt-5">
+      <div className="grade grade-3-md" style={{ gap: 20, marginTop: 20 }}>
         <div>
-          <div className="relative h-40">
+          <div className="grafico" style={{ height: 160 }}>
             <ResponsiveContainer>
               <PieChart>
-                <Pie startAngle={90} endAngle={-270} data={macros} dataKey="v" innerRadius={45} outerRadius={70} stroke="none">
+                <Pie data={macros} startAngle={90} endAngle={-270} dataKey="v" innerRadius={45} outerRadius={70} stroke="none">
                   {macros.map((m) => (
                     <Cell key={m.nome} fill={m.cor} />
                   ))}
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <p className="text-2xl font-display font-semibold">{plano.kcalAlvo}</p>
-              <p className="text-xs text-muted-foreground">kcal</p>
+            <div className="grafico-centro">
+              <p className="numero-pequeno">{plano.kcalAlvo}</p>
+              <p className="texto-pequeno texto-suave">kcal</p>
             </div>
           </div>
-          <ul className="text-xs space-y-1 mt-2">
+          <ul className="legenda" style={{ marginTop: 8 }}>
             {macros.map((m) => (
-              <li key={m.nome} className="flex justify-between">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full" style={{ background: m.cor }} />
+              <li key={m.nome}>
+                <span className="linha-sm">
+                  <span className="ponto" style={{ background: m.cor }} />
                   {m.nome}
                 </span>
                 <span>{m.v}%</span>
@@ -440,26 +458,26 @@ function PlanoResumoCard({ p, plano }) {
             ))}
           </ul>
         </div>
-        <div className="md:col-span-2 space-y-3">
+        <div className="pilha ocupa-2-md">
           {plano.refeicoes.map((r) => (
-            <div key={r.id} className="border border-border rounded-xl p-4">
-              <div className="flex justify-between">
+            <div key={r.id} className="bloco">
+              <div className="linha entre alinhar-topo">
                 <div>
-                  <p className="font-medium">{r.nome}</p>
-                  <p className="text-xs text-muted-foreground">{r.horario}</p>
+                  <p className="texto-medio">{r.nome}</p>
+                  <p className="texto-pequeno texto-suave">{r.horario}</p>
                 </div>
-                <p className="text-sm font-mono text-primary">{totaisRefeicao(r).kcal} kcal</p>
+                <p className="mono cor-primaria">{totaisRefeicao(r).kcal} kcal</p>
               </div>
-              <ul className="mt-2 space-y-1">
+              <ul className="pilha-sm" style={{ marginTop: 8 }}>
                 {r.itens.map((item) => (
-                  <li key={item.id} className="text-sm flex justify-between gap-3 text-muted-foreground">
+                  <li key={item.id} className="linha entre texto-suave">
                     <span>
                       {iconeAlimento(item.alimento)} {item.alimento.nome} · {item.gramas}g
                     </span>
-                    <span className="shrink-0">{calcularAlimento(item.alimento, item.gramas).kcal} kcal</span>
+                    <span className="sem-quebra">{calcularAlimento(item.alimento, item.gramas).kcal} kcal</span>
                   </li>
                 ))}
-                {r.itens.length === 0 && <li className="text-sm text-muted-foreground italic">Sem alimentos.</li>}
+                {r.itens.length === 0 && <li className="texto-suave texto-italico">Sem alimentos.</li>}
               </ul>
             </div>
           ))}
@@ -473,6 +491,7 @@ function PlanoResumoCard({ p, plano }) {
 function EvolucaoTab({ p }) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState({ data: isoLocal(), pesoKg: '', gorduraPct: '', massaMagraPct: '' })
+  const [erros, setErros] = useState({})
   const [removendo, setRemovendo] = useState(null)
   const inicial = p.pesoInicialKg ?? p.evolucao[0]?.pesoKg
   const delta = p.pesoAtualKg != null && inicial != null ? p.pesoAtualKg - inicial : null
@@ -484,7 +503,7 @@ function EvolucaoTab({ p }) {
   }
 
   const registrar = useMutation({
-    mutationFn: () => api(`/pacientes/${p.id}/evolucao`, { method: 'POST', body: form }),
+    mutationFn: (dados) => api(`/pacientes/${p.id}/evolucao`, { method: 'POST', body: dados }),
     onSuccess: () => {
       recarregar()
       setForm({ ...form, pesoKg: '', gorduraPct: '', massaMagraPct: '' })
@@ -503,81 +522,91 @@ function EvolucaoTab({ p }) {
     onError: (e) => toast.error(e.message),
   })
 
+  const enviar = (e) => {
+    e.preventDefault()
+    const dados = validar(evolucaoSchema, form, setErros)
+    if (dados) registrar.mutate(dados)
+  }
+
   return (
-    <div className="space-y-5">
-      <Card className="p-6">
-        <div className="flex justify-between items-baseline mb-4 flex-wrap gap-2">
-          <h3 className="font-display font-semibold text-lg">Evolução do peso</h3>
+    <div className="pilha-lg">
+      <Card className="card-amplo">
+        <div className="card-cabecalho linha-quebra">
+          <h3>Evolução do peso</h3>
           {delta != null && (
-            <p className="text-sm">
-              <span className={`font-semibold ${delta <= 0 ? 'text-leaf' : 'text-terracotta'}`}>{sinal(delta)} kg</span>{' '}
-              <span className="text-muted-foreground">desde o início</span>
+            <p>
+              <span className={`texto-forte ${delta <= 0 ? 'cor-folha' : 'cor-terracota'}`}>{sinal(delta)} kg</span>{' '}
+              <span className="texto-suave">desde o início</span>
             </p>
           )}
         </div>
         {serie.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-10 text-center">Nenhuma pesagem registrada ainda.</p>
+          <p className="centro texto-suave" style={{ padding: '40px 0' }}>
+            Nenhuma pesagem registrada ainda.
+          </p>
         ) : (
-          <div className="h-72">
+          <div style={{ height: 288 }}>
             <ResponsiveContainer>
               <LineChart data={serie} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="data" tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} />
-                <Tooltip formatter={(v) => [`${v} kg`, 'Peso']} contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8 }} />
-                <Line type="monotone" dataKey="peso" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 4, fill: 'var(--primary)' }} />
+                <CartesianGrid stroke="var(--borda)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="data" tick={EIXO} axisLine={false} tickLine={false} />
+                <YAxis tick={EIXO} axisLine={false} tickLine={false} domain={['dataMin - 2', 'dataMax + 2']} />
+                <Tooltip formatter={(v) => [`${v} kg`, 'Peso']} contentStyle={TOOLTIP} />
+                <Line type="monotone" dataKey="peso" stroke="var(--primaria)" strokeWidth={2.5} dot={{ r: 4, fill: 'var(--primaria)' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         )}
       </Card>
 
-      <Card className="p-6">
-        <h3 className="font-display font-semibold mb-4">Registrar pesagem</h3>
-        <form
-          className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end"
-          onSubmit={(e) => {
-            e.preventDefault()
-            registrar.mutate()
-          }}
-        >
-          <Field label="Data">{(id) => <Input id={id} type="date" max={isoLocal()} value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} required />}</Field>
-          <Field label="Peso (kg)">{(id) => <Input id={id} type="number" step="0.1" value={form.pesoKg} onChange={(e) => setForm({ ...form, pesoKg: e.target.value })} required />}</Field>
-          <Field label="% Gordura">{(id) => <Input id={id} type="number" step="0.1" value={form.gorduraPct} onChange={(e) => setForm({ ...form, gorduraPct: e.target.value })} />}</Field>
-          <Field label="% Massa magra">{(id) => <Input id={id} type="number" step="0.1" value={form.massaMagraPct} onChange={(e) => setForm({ ...form, massaMagraPct: e.target.value })} />}</Field>
+      <Card className="card-amplo">
+        <h3 className="card-titulo">Registrar pesagem</h3>
+        <form className="formulario-pesagem" onSubmit={enviar} noValidate>
+          <Field label="Data" erro={erros.data}>
+            {(id) => <Input id={id} type="date" max={isoLocal()} value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} />}
+          </Field>
+          <Field label="Peso (kg)" erro={erros.pesoKg}>
+            {(id) => <Input id={id} type="number" step="0.1" value={form.pesoKg} onChange={(e) => setForm({ ...form, pesoKg: e.target.value })} erro={erros.pesoKg} />}
+          </Field>
+          <Field label="% Gordura" erro={erros.gorduraPct}>
+            {(id) => <Input id={id} type="number" step="0.1" value={form.gorduraPct} onChange={(e) => setForm({ ...form, gorduraPct: e.target.value })} />}
+          </Field>
+          <Field label="% Massa magra" erro={erros.massaMagraPct}>
+            {(id) => <Input id={id} type="number" step="0.1" value={form.massaMagraPct} onChange={(e) => setForm({ ...form, massaMagraPct: e.target.value })} />}
+          </Field>
           <Button type="submit" loading={registrar.isPending}>
-            <Plus className="h-4 w-4" /> Registrar
+            <Plus /> Registrar
           </Button>
         </form>
       </Card>
 
       {p.evolucao.length > 0 && (
-        <Card className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[560px]">
-            <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+        <Card className="card-sem-espaco rolagem-x">
+          <table className="tabela tabela-maiuscula" style={{ minWidth: 560 }}>
+            <thead>
               <tr>
-                <th className="text-left px-4 py-3 font-medium">Data</th>
-                <th className="text-right px-3 py-3 font-medium">Peso</th>
-                <th className="text-right px-3 py-3 font-medium">Δ início</th>
-                <th className="text-right px-3 py-3 font-medium">% Gordura</th>
-                <th className="text-right px-3 py-3 font-medium">% Massa magra</th>
-                <th className="px-3 py-3" />
+                <th>Data</th>
+                <th className="direita">Peso</th>
+                <th className="direita">Δ início</th>
+                <th className="direita">% Gordura</th>
+                <th className="direita">% Massa magra</th>
+                <th />
               </tr>
             </thead>
             <tbody>
               {[...p.evolucao].reverse().map((e) => (
-                <tr key={e.id} className="border-t border-border">
-                  <td className="px-4 py-2.5">
+                <tr key={e.id}>
+                  <td>
                     {dataBR(e.data)}
-                    {e.registradoPor === 'paciente' && <span className="text-xs text-muted-foreground"> · pelo app</span>}
+                    {e.registradoPor === 'paciente' && <span className="texto-pequeno texto-suave"> · pelo app</span>}
                   </td>
-                  <td className="text-right px-3 py-2.5 font-mono">{e.pesoKg.toFixed(1)}</td>
-                  <td className="text-right px-3 py-2.5 font-mono text-muted-foreground">{inicial != null ? `${sinal(e.pesoKg - inicial)} kg` : '—'}</td>
-                  <td className="text-right px-3 py-2.5 font-mono text-muted-foreground">{e.gorduraPct ?? '—'}</td>
-                  <td className="text-right px-3 py-2.5 font-mono text-muted-foreground">{e.massaMagraPct ?? '—'}</td>
-                  <td className="px-3 py-2.5 text-right">
-                    <button onClick={() => setRemovendo(e)} className="text-muted-foreground hover:text-destructive" title="Remover">
-                      <Trash2 className="h-4 w-4" />
+                  <td className="num">{e.pesoKg.toFixed(1)}</td>
+                  <td className="num-suave">{inicial != null ? `${sinal(e.pesoKg - inicial)} kg` : '—'}</td>
+                  <td className="num-suave">{e.gorduraPct ?? '—'}</td>
+                  <td className="num-suave">{e.massaMagraPct ?? '—'}</td>
+                  <td className="direita">
+                    <button onClick={() => setRemovendo(e)} className="icone-acao perigo" title="Remover">
+                      <Trash2 />
                     </button>
                   </td>
                 </tr>
@@ -609,6 +638,7 @@ function ConsultasTab({ p }) {
   const queryClient = useQueryClient()
   const vazio = { data: isoLocal(), horario: '', tipo: 'Retorno', observacoes: '' }
   const [form, setForm] = useState(vazio)
+  const [erros, setErros] = useState({})
   const [editando, setEditando] = useState(null)
   const [removendo, setRemovendo] = useState(null)
 
@@ -625,7 +655,7 @@ function ConsultasTab({ p }) {
   }
 
   const criar = useMutation({
-    mutationFn: () => api('/consultas', { method: 'POST', body: { ...form, pacienteId: p.id } }),
+    mutationFn: (dados) => api('/consultas', { method: 'POST', body: dados }),
     onSuccess: () => {
       recarregar()
       setForm(vazio)
@@ -635,7 +665,7 @@ function ConsultasTab({ p }) {
   })
 
   const salvarEdicao = useMutation({
-    mutationFn: (c) => api(`/consultas/${c.id}`, { method: 'PUT', body: { data: c.data, horario: c.horario, tipo: c.tipo, observacoes: c.observacoes } }),
+    mutationFn: ({ id, dados }) => api(`/consultas/${id}`, { method: 'PUT', body: dados }),
     onSuccess: () => {
       recarregar()
       setEditando(null)
@@ -655,20 +685,32 @@ function ConsultasTab({ p }) {
   })
 
   const enviar = () => {
-    if (!form.horario) return toast.error('Selecione um horário disponível')
-    criar.mutate()
+    if (!form.horario) {
+      setErros({ horario: 'Selecione um horário disponível' })
+      return toast.error('Selecione um horário disponível')
+    }
+    const dados = validar(consultaSchema, { ...form, pacienteId: p.id }, setErros)
+    if (dados) criar.mutate(dados)
+  }
+
+  const enviarEdicao = () => {
+    const { id, data, horario, tipo, observacoes } = editando
+    const dados = validar(atualizarConsultaSchema, { data, horario, tipo, observacoes })
+    if (dados) salvarEdicao.mutate({ id, dados })
   }
 
   return (
-    <div className="space-y-5">
+    <div className="pilha-lg">
       {p.ativo ? (
-        <Card className="p-6">
-          <h3 className="font-display font-semibold mb-4">Agendar / registrar atendimento</h3>
-          <div className="grid md:grid-cols-3 gap-3">
-            <Field label="Data">{(id) => <Input id={id} type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value, horario: '' })} />}</Field>
-            <Field label="Horário">
+        <Card className="card-amplo">
+          <h3 className="card-titulo">Agendar / registrar atendimento</h3>
+          <div className="grade grade-3-md" style={{ gap: 12 }}>
+            <Field label="Data" erro={erros.data}>
+              {(id) => <Input id={id} type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value, horario: '' })} />}
+            </Field>
+            <Field label="Horário" erro={erros.horario}>
               {(id) => (
-                <Select id={id} value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })}>
+                <Select id={id} value={form.horario} onChange={(e) => setForm({ ...form, horario: e.target.value })} className={erros.horario ? 'campo-com-erro' : ''}>
                   <option value="">Selecione...</option>
                   {HORARIOS.map((h) => {
                     const ocupado = ocupados.includes(h)
@@ -693,51 +735,45 @@ function ConsultasTab({ p }) {
               )}
             </Field>
           </div>
-          <Field label="Notas do atendimento (opcional)" className="mt-3">
+          <Field label="Notas do atendimento (opcional)" className="campo-espaco">
             {(id) => (
-              <Textarea
-                id={id}
-                className="min-h-[90px]"
-                value={form.observacoes}
-                onChange={(e) => setForm({ ...form, observacoes: e.target.value })}
-                placeholder="Conduta, observações clínicas, ajustes..."
-              />
+              <Textarea id={id} value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} placeholder="Conduta, observações clínicas, ajustes..." />
             )}
           </Field>
-          <div className="flex justify-end mt-3">
+          <div className="linha" style={{ justifyContent: 'flex-end', marginTop: 12 }}>
             <Button onClick={enviar} loading={criar.isPending}>
-              <Plus className="h-4 w-4" /> Registrar
+              <Plus /> Registrar
             </Button>
           </div>
         </Card>
       ) : (
-        <Card className="p-5 text-sm text-muted-foreground">Reative o paciente para agendar novas consultas.</Card>
+        <Card className="texto-suave">Reative o paciente para agendar novas consultas.</Card>
       )}
 
-      <Card className="p-6">
-        <h3 className="font-display font-semibold mb-4">Histórico de atendimentos ({p.consultas.length})</h3>
+      <Card className="card-amplo">
+        <h3 className="card-titulo">Histórico de atendimentos ({p.consultas.length})</h3>
         {p.consultas.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic">Nenhum atendimento registrado.</p>
+          <p className="texto-suave texto-italico">Nenhum atendimento registrado.</p>
         ) : (
-          <ul className="space-y-3">
+          <ul className="pilha">
             {p.consultas.map((c) => (
-              <li key={c.id} className="flex gap-4 p-4 rounded-xl border border-border group">
-                <div className="text-sm font-mono text-muted-foreground whitespace-nowrap shrink-0">
+              <li key={c.id} className="item-consulta">
+                <div className="mono texto-suave sem-quebra">
                   {dataBR(c.data)} · {c.horario}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <Badge variant="outline" className="mb-1">
-                    {c.tipo}
-                  </Badge>
-                  {c.data >= isoLocal() && <Badge className="mb-1 ml-1">Agendada</Badge>}
-                  <p className="text-sm whitespace-pre-wrap">{c.observacoes || <span className="text-muted-foreground italic">Sem anotações.</span>}</p>
+                <div className="expandir">
+                  <div className="linha-sm" style={{ marginBottom: 4 }}>
+                    <Badge variant="outline">{c.tipo}</Badge>
+                    {c.data >= isoLocal() && <Badge>Agendada</Badge>}
+                  </div>
+                  <p className="quebrar">{c.observacoes || <span className="texto-suave texto-italico">Sem anotações.</span>}</p>
                 </div>
-                <div className="flex gap-2 opacity-60 group-hover:opacity-100 transition">
-                  <button onClick={() => setEditando({ ...c, observacoes: c.observacoes || '' })} className="text-muted-foreground hover:text-primary" title="Editar">
-                    <Pencil className="h-4 w-4" />
+                <div className="item-consulta-acoes">
+                  <button onClick={() => setEditando({ ...c, observacoes: c.observacoes || '' })} className="icone-acao" title="Editar">
+                    <Pencil />
                   </button>
-                  <button onClick={() => setRemovendo(c)} className="text-muted-foreground hover:text-destructive" title="Remover">
-                    <Trash2 className="h-4 w-4" />
+                  <button onClick={() => setRemovendo(c)} className="icone-acao perigo" title="Remover">
+                    <Trash2 />
                   </button>
                 </div>
               </li>
@@ -755,14 +791,14 @@ function ConsultasTab({ p }) {
             <Button variant="outline" onClick={() => setEditando(null)}>
               Cancelar
             </Button>
-            <Button onClick={() => salvarEdicao.mutate(editando)} loading={salvarEdicao.isPending}>
+            <Button onClick={enviarEdicao} loading={salvarEdicao.isPending}>
               Salvar
             </Button>
           </>
         }
       >
         {editando && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grade grade-2" style={{ gap: 12 }}>
             <Field label="Data">{(id) => <Input id={id} type="date" value={editando.data} onChange={(e) => setEditando({ ...editando, data: e.target.value })} />}</Field>
             <Field label="Horário">
               {(id) => (
@@ -773,9 +809,11 @@ function ConsultasTab({ p }) {
                 </Select>
               )}
             </Field>
-            <Field label="Tipo" className="col-span-2">{(id) => <Input id={id} value={editando.tipo} onChange={(e) => setEditando({ ...editando, tipo: e.target.value })} />}</Field>
-            <Field label="Notas do atendimento" className="col-span-2">
-              {(id) => <Textarea id={id} className="min-h-[120px]" value={editando.observacoes} onChange={(e) => setEditando({ ...editando, observacoes: e.target.value })} />}
+            <Field label="Tipo" className="ocupa-tudo">
+              {(id) => <Input id={id} value={editando.tipo} onChange={(e) => setEditando({ ...editando, tipo: e.target.value })} />}
+            </Field>
+            <Field label="Notas do atendimento" className="ocupa-tudo">
+              {(id) => <Textarea id={id} className="campo-alto" value={editando.observacoes} onChange={(e) => setEditando({ ...editando, observacoes: e.target.value })} />}
             </Field>
           </div>
         )}

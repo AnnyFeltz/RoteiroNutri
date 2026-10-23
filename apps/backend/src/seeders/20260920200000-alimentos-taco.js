@@ -1,6 +1,6 @@
 'use strict';
 
-// Tabela TACO 4ª edição (NEPA/UNICAMP) — 596 alimentos, valores por 100g.
+// Tabela TACO 4ª edição (NEPA/UNICAMP) — 597 alimentos, valores por 100g.
 // Dados extraídos de https://github.com/raulfdm/taco-api (licença MIT).
 const alimentos = require('./data/taco.json');
 

@@ -4,7 +4,9 @@ import { useRouter } from 'expo-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Info } from 'lucide-react-native'
 import { Botao, Cabecalho, Campo, Card, Carregando, Tela, Texto, estilos } from '../../../components/ui'
+import { atualizarPerfilPacienteSchema } from '@RoteiroNutri/shared'
 import { api } from '../../../lib/api'
+import { validar } from '../../../lib/validacao'
 import { usePerfil } from '../../../lib/consultas'
 import { num, objetivoLabel } from '../../../lib/formato'
 import { cores } from '../../../lib/tema'
@@ -21,7 +23,7 @@ export default function EditarPerfil() {
   const voltar = () => (router.canGoBack() ? router.back() : router.replace('/perfil'))
 
   const salvar = useMutation({
-    mutationFn: () => api('/app/perfil', { method: 'PUT', body: { nome: form.nome.trim(), email: form.email.trim(), telefone: form.telefone.trim() } }),
+    mutationFn: (dados) => api('/app/perfil', { method: 'PUT', body: dados }),
     onSuccess: (novo) => {
       queryClient.setQueryData(['perfil'], novo)
       voltar()
@@ -31,6 +33,13 @@ export default function EditarPerfil() {
 
   if (isLoading) return <Carregando />
   const f = form ?? { nome: p.nome, email: p.email, telefone: p.telefone || '' }
+
+  const enviar = () => {
+    if (!form) return voltar()
+    const { dados, erro: invalido } = validar(atualizarPerfilPacienteSchema, form)
+    if (invalido) return setErro(invalido)
+    salvar.mutate(dados)
+  }
 
   return (
     <Tela>
@@ -61,7 +70,7 @@ export default function EditarPerfil() {
       {erro ? <Texto style={{ color: cores.perigo }}>{erro}</Texto> : null}
       <View style={[estilos.linha, { gap: 10 }]}>
         <Botao titulo="Cancelar" variante="contorno" style={{ flex: 1 }} onPress={voltar} />
-        <Botao titulo="Salvar" style={{ flex: 1 }} carregando={salvar.isPending} onPress={() => (form ? salvar.mutate() : voltar())} />
+        <Botao titulo="Salvar" style={{ flex: 1 }} carregando={salvar.isPending} onPress={enviar} />
       </View>
     </Tela>
   )

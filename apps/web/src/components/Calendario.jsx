@@ -15,39 +15,33 @@ export function Calendario({ mes, onMudarMes, marcados, hoje, onSelecionar }) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <button className="p-2 rounded-md hover:bg-muted" onClick={() => onMudarMes(new Date(ano, m - 1, 1))} aria-label="Mês anterior">
-          <ChevronLeft className="h-4 w-4" />
+      <div className="calendario-topo">
+        <button className="botao-redondo" onClick={() => onMudarMes(new Date(ano, m - 1, 1))} aria-label="Mês anterior">
+          <ChevronLeft />
         </button>
-        <p className="font-display font-semibold capitalize">
+        <p className="calendario-mes">
           {MESES[m]} {ano}
         </p>
-        <button className="p-2 rounded-md hover:bg-muted" onClick={() => onMudarMes(new Date(ano, m + 1, 1))} aria-label="Próximo mês">
-          <ChevronRight className="h-4 w-4" />
+        <button className="botao-redondo" onClick={() => onMudarMes(new Date(ano, m + 1, 1))} aria-label="Próximo mês">
+          <ChevronRight />
         </button>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center">
+      <div className="calendario-grade">
         {SEMANA.map((d) => (
-          <div key={d} className="text-xs text-muted-foreground py-1">
+          <div key={d} className="calendario-semana">
             {d}
           </div>
         ))}
         {celulas.map((d, i) => {
           if (!d) return <div key={`v${i}`} />
           const data = iso(d)
-          const temConsulta = marcados.has(data)
           return (
             <button
               key={data}
               onClick={() => onSelecionar(data)}
-              className={cn(
-                'relative h-11 rounded-md text-sm transition hover:bg-accent',
-                data === hoje && 'bg-primary/10 font-semibold',
-                temConsulta && 'font-semibold text-primary',
-              )}
+              className={cn('calendario-dia', data === hoje && 'calendario-hoje', marcados.has(data) && 'calendario-com-consulta')}
             >
               {d}
-              {temConsulta && <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />}
             </button>
           )
         })}
