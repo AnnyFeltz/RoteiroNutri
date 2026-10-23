@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "turbo dev",
     "dev:web": "turbo dev --filter=web",
-    "dev:mobile": "turbo dev --filter=mobile",
+    "dev:mobile": "pnpm --filter mobile start",
     "dev:backend": "turbo dev --filter=backend",
     "build": "turbo build",
     "db:setup": "pnpm --filter backend db:setup",

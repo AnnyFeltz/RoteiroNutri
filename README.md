@@ -62,7 +62,7 @@ cp apps/web/.env.example apps/web/.env
 pnpm dev:web           # http://localhost:5173
 
 # 3. app do paciente (outro terminal)
-pnpm dev:mobile        # abra no Expo Go (mesma rede Wi-Fi)
+pnpm dev:mobile        # mostra o QR code: abra no Expo Go (mesma rede Wi-Fi)
 ```
 
 Acessos de demonstração (senha `demo1234`): nutricionista `caroline@roteironutri.com` no web;
