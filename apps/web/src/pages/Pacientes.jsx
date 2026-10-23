@@ -118,7 +118,7 @@ export default function Pacientes() {
                   <tr key={p.id}>
                     <td>
                       <Link to={`/nutri/pacientes/${p.id}`} className="linha link-texto">
-                        <Avatar nome={p.nome} cor={p.avatarCor} />
+                        <Avatar nome={p.nome} cor={p.avatarCor} foto={p.foto} />
                         <div>
                           <p className="texto-medio">{p.nome}</p>
                           <p className="texto-pequeno texto-suave">

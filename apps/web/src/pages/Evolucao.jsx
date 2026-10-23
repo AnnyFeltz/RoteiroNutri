@@ -127,7 +127,7 @@ export default function Evolucao() {
             const ativo = selecionados?.includes(p.id)
             return (
               <div key={p.id} onClick={() => alternar(p.id)} className={`progresso-paciente ${ativo ? 'progresso-paciente-ativo' : ''}`}>
-                <Avatar nome={p.nome} cor={p.avatarCor} />
+                <Avatar nome={p.nome} cor={p.avatarCor} foto={p.foto} />
                 <div className="expandir">
                   <div className="linha-sm linha-quebra">
                     <Link to={`/nutri/pacientes/${p.id}`} onClick={(e) => e.stopPropagation()} className="texto-medio link-texto">

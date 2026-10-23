@@ -9,6 +9,7 @@ const router = express.Router();
 router.get('/perfil', asyncHandler(c.perfil));
 router.put('/perfil', asyncHandler(c.atualizarPerfil));
 router.put('/senha', asyncHandler(c.alterarSenha));
+router.put('/foto', asyncHandler(c.atualizarFoto));
 router.put('/preferencias', asyncHandler(c.atualizarPreferencias));
 // RF18
 router.get('/plano', asyncHandler(c.planoDoDia));

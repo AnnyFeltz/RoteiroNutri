@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { loginSchema } from '@RoteiroNutri/shared'
 import { AuthLayout } from '../components/AuthLayout'
-import { Button, Field, Input } from '../components/ui'
+import { Button, Field, Input, PasswordInput } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { validar } from '../lib/validacao'
 
@@ -51,7 +51,7 @@ export default function Login() {
               Esqueci minha senha
             </Link>
           </div>
-          <Input id="senha" type="password" autoComplete="current-password" value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })} erro={erros.senha} />
+          <PasswordInput id="senha" autoComplete="current-password" value={form.senha} onChange={(e) => setForm({ ...form, senha: e.target.value })} erro={erros.senha} />
           {erros.senha && <p className="erro-campo">{erros.senha}</p>}
         </div>
         <Button type="submit" loading={carregando} className="btn-bloco">

@@ -13,7 +13,7 @@ const { registrarPesagem, garantirEmailLivre } = require('./pacienteService');
 const { notificar } = require('../sockets');
 const AppError = require('../utils/AppError');
 
-const ATRIBUTOS_NUTRI = ['id', 'nome', 'crn', 'email', 'telefone'];
+const ATRIBUTOS_NUTRI = ['id', 'nome', 'crn', 'email', 'telefone', 'foto'];
 
 // RF17 / RN10 - Visualizar perfil (dados cadastrais e clínicos)
 async function perfil(pacienteId) {
@@ -73,6 +73,13 @@ async function alterarSenha(pacienteId, { senhaAtual, novaSenha }) {
   const paciente = await Paciente.scope('comSenha').findByPk(pacienteId);
   if (!(await compararSenha(senhaAtual, paciente.senhaHash))) throw new AppError('Senha atual incorreta', 400);
   await paciente.update({ senhaHash: await gerarHash(novaSenha) });
+}
+
+// O paciente pode trocar a própria foto de perfil (dado pessoal - RN18)
+async function atualizarFoto(pacienteId, foto) {
+  const paciente = await buscarPacienteLogado(pacienteId);
+  await paciente.update({ foto });
+  return perfil(pacienteId);
 }
 
 async function atualizarPreferencias(pacienteId, preferencias) {
@@ -243,6 +250,7 @@ module.exports = {
   perfil,
   atualizarPerfil,
   alterarSenha,
+  atualizarFoto,
   atualizarPreferencias,
   planoDoDia,
   historicoPlanos,

@@ -1,6 +1,6 @@
 // Componentes de interface reutilizáveis (estilos em src/estilos/componentes.css).
-import { useEffect, useId } from 'react'
-import { Loader2, X } from 'lucide-react'
+import { useEffect, useId, useState } from 'react'
+import { Eye, EyeOff, Loader2, X } from 'lucide-react'
 import { iniciais } from '../lib/format'
 import { cn } from '../lib/hooks'
 
@@ -71,11 +71,31 @@ export function Badge({ variant = 'default', className, ...props }) {
   return <span className={cn('selo', VARIANTES_SELO[variant], className)} {...props} />
 }
 
-export function Avatar({ nome, cor, tamanho }) {
+/** Foto de perfil; sem foto, mostra as iniciais na cor do usuário. */
+export function Avatar({ nome, cor, foto, tamanho }) {
   return (
-    <span className={cn('avatar', tamanho && `avatar-${tamanho}`)} style={{ background: cor || 'var(--primaria)' }}>
-      {iniciais(nome)}
+    <span className={cn('avatar', tamanho && `avatar-${tamanho}`)} style={{ background: foto ? 'var(--suave)' : cor || 'var(--primaria)' }}>
+      {foto ? <img src={foto} alt={`Foto de ${nome}`} /> : iniciais(nome)}
     </span>
+  )
+}
+
+/** Campo de senha com o botão de olhinho para mostrar/esconder o que foi digitado. */
+export function PasswordInput({ className, erro, ...props }) {
+  const [visivel, setVisivel] = useState(false)
+  return (
+    <div className="campo-senha">
+      <input type={visivel ? 'text' : 'password'} className={cn('campo', erro && 'campo-com-erro', className)} {...props} />
+      <button
+        type="button"
+        className="campo-senha-olho"
+        onClick={() => setVisivel((v) => !v)}
+        aria-label={visivel ? 'Esconder senha' : 'Mostrar senha'}
+        title={visivel ? 'Esconder senha' : 'Mostrar senha'}
+      >
+        {visivel ? <EyeOff /> : <Eye />}
+      </button>
+    </div>
   )
 }
 

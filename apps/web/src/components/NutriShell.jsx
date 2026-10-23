@@ -73,7 +73,7 @@ export function NutriShell() {
       </nav>
       <div className="lateral-rodape">
         <div className="lateral-usuario">
-          <Avatar nome={nutricionista.nome} cor="var(--terracota)" tamanho="sm" />
+          <Avatar nome={nutricionista.nome} cor="var(--terracota)" foto={nutricionista.foto} tamanho="sm" />
           <div className="expandir">
             <p className="texto-medio cortar">{nutricionista.nome}</p>
             <p className="lateral-crn">{nutricionista.crn}</p>

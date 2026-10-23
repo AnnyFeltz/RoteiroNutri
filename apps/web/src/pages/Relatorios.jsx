@@ -69,7 +69,7 @@ export default function Relatorios() {
             const Icon = dif < 0 ? TrendingDown : TrendingUp
             return (
               <li key={p.id} className="linha linha-quebra" style={{ padding: '12px 20px' }}>
-                <Avatar nome={p.nome} cor={p.avatarCor} />
+                <Avatar nome={p.nome} cor={p.avatarCor} foto={p.foto} />
                 <div className="expandir">
                   <p className="texto-medio cortar">{p.nome}</p>
                   <p className="texto-pequeno texto-suave cortar">

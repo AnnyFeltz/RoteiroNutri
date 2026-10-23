@@ -59,9 +59,9 @@ export default function Privacidade() {
           <KeyRound size={16} color={cores.primaria} />
           <Texto estilo="forte">Alterar senha</Texto>
         </View>
-        <Campo rotulo="Senha atual" secureTextEntry value={senhas.senhaAtual} onChangeText={(v) => setSenhas({ ...senhas, senhaAtual: v })} />
-        <Campo rotulo="Nova senha" secureTextEntry value={senhas.novaSenha} onChangeText={(v) => setSenhas({ ...senhas, novaSenha: v })} />
-        <Campo rotulo="Confirmar nova senha" secureTextEntry value={senhas.confirmar} onChangeText={(v) => setSenhas({ ...senhas, confirmar: v })} />
+        <Campo rotulo="Senha atual" senha value={senhas.senhaAtual} onChangeText={(v) => setSenhas({ ...senhas, senhaAtual: v })} />
+        <Campo rotulo="Nova senha" senha value={senhas.novaSenha} onChangeText={(v) => setSenhas({ ...senhas, novaSenha: v })} />
+        <Campo rotulo="Confirmar nova senha" senha value={senhas.confirmar} onChangeText={(v) => setSenhas({ ...senhas, confirmar: v })} />
         {mensagem && <Texto style={{ color: mensagem.ok ? cores.primaria : cores.perigo, fontSize: 13 }}>{mensagem.texto}</Texto>}
         <Botao titulo="Alterar senha" onPress={trocarSenha} carregando={alterar.isPending} />
       </Card>

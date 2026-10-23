@@ -106,7 +106,7 @@ function resumir(plano) {
 async function painel(nutricionistaId) {
   const pacientes = await Paciente.findAll({
     where: { nutricionistaId, ativo: true },
-    attributes: ['id', 'nome', 'idade', 'objetivo', 'avatarCor'],
+    attributes: ['id', 'nome', 'idade', 'objetivo', 'avatarCor', 'foto'],
     order: [['nome', 'ASC']],
   });
   const ids = pacientes.map((p) => p.id);

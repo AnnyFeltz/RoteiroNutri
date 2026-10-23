@@ -1,21 +1,18 @@
 import { useState } from 'react'
 import { Pressable, View, useWindowDimensions } from 'react-native'
-import { useRouter } from 'expo-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { TrendingDown, TrendingUp, Trophy, Plus, Target } from 'lucide-react-native'
+import { TrendingDown, TrendingUp, Plus, Target } from 'lucide-react-native'
 import { imc, classificacaoImc, progressoMeta, evolucaoSchema } from '@RoteiroNutri/shared'
 import { BarraProgresso, Botao, Cabecalho, Campo, Card, Carregando, Erro, Selo, Tela, Texto, estilos } from '../../../components/ui'
 import { Linha } from '../../../components/graficos'
 import { api } from '../../../lib/api'
 import { hojeLocal, useEvolucao, usePerfil } from '../../../lib/consultas'
-import { conquistas } from '../../../lib/conquistas'
 import { validar } from '../../../lib/validacao'
 import { dataBR, diaMes, mesCurto, num, sinal } from '../../../lib/formato'
 import { cores } from '../../../lib/tema'
 
 // RF21 - Gráficos de evolução (peso, composição corporal e adesão)
 export default function Evolucao() {
-  const router = useRouter()
   const queryClient = useQueryClient()
   const { width } = useWindowDimensions()
   const evolucao = useEvolucao()
@@ -53,7 +50,6 @@ export default function Evolucao() {
   const valorImc = imc(p.pesoAtualKg, p.alturaCm)
   const Tendencia = delta != null && delta > 0 ? TrendingUp : TrendingDown
   const largura = Math.min(width, 700) - 72
-  const lista = conquistas(perfil.data, evolucao.data).filter((c) => c.obtida).slice(0, 3)
 
   return (
     <Tela aoAtualizar={() => Promise.all([evolucao.refetch(), perfil.refetch()])} atualizando={evolucao.isRefetching}>
@@ -155,32 +151,6 @@ export default function Evolucao() {
           <Linha largura={largura} altura={140} cor={cores.terracota} area={false} minimo={0} maximo={100} sufixo="%" dados={adesaoMensal.map((m) => ({ valor: m.pct, rotulo: mesCurto(m.mes) }))} />
         </Card>
       )}
-
-      <Card>
-        <View style={[estilos.linha, { justifyContent: 'space-between', marginBottom: 10 }]}>
-          <View style={[estilos.linha, { gap: 6 }]}>
-            <Trophy size={16} color={cores.terracota} />
-            <Texto estilo="forte">Conquistas</Texto>
-          </View>
-          <Pressable onPress={() => router.push('/conquistas')}>
-            <Texto style={{ color: cores.primaria, fontSize: 12, fontWeight: '600' }}>Ver todas</Texto>
-          </Pressable>
-        </View>
-        {lista.length === 0 && <Texto estilo="legenda">Continue registrando suas refeições para desbloquear conquistas.</Texto>}
-        <View style={{ gap: 8 }}>
-          {lista.map((c) => (
-            <View key={c.titulo} style={[estilos.linha, { gap: 10, padding: 10, borderRadius: 12, backgroundColor: 'rgba(242,226,208,0.4)' }]}>
-              <Texto style={{ fontSize: 24 }}>{c.icone}</Texto>
-              <View style={{ flex: 1 }}>
-                <Texto estilo="forte">{c.titulo}</Texto>
-                <Texto estilo="legenda" style={{ fontSize: 11 }}>
-                  {c.descricao}
-                </Texto>
-              </View>
-            </View>
-          ))}
-        </View>
-      </Card>
 
       {perfil.data?.proximaConsulta && (
         <Card style={[estilos.linha, { gap: 10, backgroundColor: 'rgba(46,89,41,0.05)', borderColor: 'rgba(46,89,41,0.3)' }]}>

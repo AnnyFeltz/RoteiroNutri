@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { cadastrarNutricionistaSchema } from '@RoteiroNutri/shared'
 import { AuthLayout } from '../components/AuthLayout'
-import { Button, Field, Input } from '../components/ui'
+import { Button, Field, Input, PasswordInput } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { validar } from '../lib/validacao'
 
@@ -49,7 +49,7 @@ export default function Cadastro() {
           {(id) => <Input id={id} type="email" value={form.email} onChange={set('email')} autoComplete="email" erro={erros.email} />}
         </Field>
         <Field label="Senha" hint="Mínimo de 6 caracteres. Armazenada com hash bcrypt." erro={erros.senha}>
-          {(id) => <Input id={id} type="password" value={form.senha} onChange={set('senha')} autoComplete="new-password" erro={erros.senha} />}
+          {(id) => <PasswordInput id={id} value={form.senha} onChange={set('senha')} autoComplete="new-password" erro={erros.senha} />}
         </Field>
         <Button type="submit" loading={carregando} className="btn-bloco">
           {carregando ? 'Criando conta...' : 'Criar conta'}

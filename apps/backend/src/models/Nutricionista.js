@@ -37,6 +37,8 @@ module.exports = (sequelize, DataTypes) => {
         field: 'token_expira_em',
       },
       telefone: DataTypes.STRING,
+      // foto de perfil em base64 (data URL)
+      foto: DataTypes.TEXT,
       preferencias: {
         type: DataTypes.JSONB,
         allowNull: false,

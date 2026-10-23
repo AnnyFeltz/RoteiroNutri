@@ -164,7 +164,7 @@ export default function Inicio() {
 
       {p.nutricionista && (
         <Card style={[estilos.linha, { gap: 12, backgroundColor: 'rgba(242,226,208,0.5)' }]}>
-          <Avatar nome={p.nutricionista.nome} />
+          <Avatar nome={p.nutricionista.nome} foto={p.nutricionista.foto} />
           <View style={{ flex: 1 }}>
             <Texto estilo="legenda">Seu nutricionista</Texto>
             <Texto estilo="forte">{p.nutricionista.nome}</Texto>

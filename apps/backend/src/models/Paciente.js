@@ -52,6 +52,8 @@ module.exports = (sequelize, DataTypes) => {
       recordatorioAlimentar: { type: DataTypes.TEXT, field: 'recordatorio_alimentar' },
       dataInicio: { type: DataTypes.DATEONLY, field: 'data_inicio' },
       telefone: DataTypes.STRING,
+      // foto de perfil em base64 (data URL)
+      foto: DataTypes.TEXT,
       avatarCor: { type: DataTypes.STRING, field: 'avatar_cor' },
       preferencias: {
         type: DataTypes.JSONB,

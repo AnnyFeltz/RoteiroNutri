@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { KeyRound } from 'lucide-react'
+import { Camera, KeyRound, Trash2 } from 'lucide-react'
 import { atualizarNutricionistaSchema, alterarSenhaSchema } from '@RoteiroNutri/shared'
-import { Button, Card, Field, Input, Switch } from '../components/ui'
+import { Avatar, Button, Card, Field, Input, PasswordInput, Switch } from '../components/ui'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { validar } from '../lib/validacao'
+import { reduzirImagem } from '../lib/imagem'
 
 export default function Configuracoes() {
   const { nutricionista, setNutricionista } = useAuth()
@@ -38,6 +39,26 @@ export default function Configuracoes() {
     },
     onError: (e) => toast.error(e.message),
   })
+
+  const salvarFoto = useMutation({
+    mutationFn: (foto) => api('/nutricionista/foto', { method: 'PUT', body: { foto } }),
+    onSuccess: (n) => {
+      setNutricionista(n)
+      toast.success(n.foto ? 'Foto atualizada' : 'Foto removida')
+    },
+    onError: (e) => toast.error(e.message),
+  })
+
+  const escolherFoto = async (e) => {
+    const arquivo = e.target.files?.[0]
+    e.target.value = ''
+    if (!arquivo) return
+    try {
+      salvarFoto.mutate(await reduzirImagem(arquivo))
+    } catch (erro) {
+      toast.error(erro.message)
+    }
+  }
 
   const salvarPreferencia = useMutation({
     mutationFn: (prefs) => api('/nutricionista/preferencias', { method: 'PUT', body: prefs }),
@@ -74,6 +95,24 @@ export default function Configuracoes() {
 
       <Card className="card-amplo pilha-lg">
         <h2 className="titulo-card">Perfil profissional</h2>
+        <div className="linha linha-quebra" style={{ gap: 20 }}>
+          <Avatar nome={nutricionista.nome} cor="var(--terracota)" foto={nutricionista.foto} tamanho="xl" />
+          <div className="pilha-sm">
+            <p className="texto-medio">Foto de perfil</p>
+            <p className="texto-pequeno texto-suave">Aparece no painel e para seus pacientes no app. JPG ou PNG.</p>
+            <div className="acoes">
+              <label className={`btn btn-contorno btn-sm ${salvarFoto.isPending ? 'carregando-botao' : ''}`}>
+                <Camera /> {nutricionista.foto ? 'Trocar foto' : 'Enviar foto'}
+                <input type="file" accept="image/*" hidden onChange={escolherFoto} disabled={salvarFoto.isPending} />
+              </label>
+              {nutricionista.foto && (
+                <Button variant="ghost" size="sm" className="btn-acao-perigo" onClick={() => salvarFoto.mutate(null)} loading={salvarFoto.isPending}>
+                  <Trash2 /> Remover
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
         <div className="grade grade-2-sm">
           <Field label="Nome" erro={errosPerfil.nome}>
             {(id) => <Input id={id} value={perfil.nome} onChange={set('nome')} erro={errosPerfil.nome} />}
@@ -102,13 +141,13 @@ export default function Configuracoes() {
         </div>
         <div className="grade grade-3-sm">
           <Field label="Senha atual" erro={errosSenha.senhaAtual}>
-            {(id) => <Input id={id} type="password" value={senhas.senhaAtual} onChange={(e) => setSenhas({ ...senhas, senhaAtual: e.target.value })} autoComplete="current-password" erro={errosSenha.senhaAtual} />}
+            {(id) => <PasswordInput id={id} value={senhas.senhaAtual} onChange={(e) => setSenhas({ ...senhas, senhaAtual: e.target.value })} autoComplete="current-password" erro={errosSenha.senhaAtual} />}
           </Field>
           <Field label="Nova senha" erro={errosSenha.novaSenha}>
-            {(id) => <Input id={id} type="password" value={senhas.novaSenha} onChange={(e) => setSenhas({ ...senhas, novaSenha: e.target.value })} autoComplete="new-password" erro={errosSenha.novaSenha} />}
+            {(id) => <PasswordInput id={id} value={senhas.novaSenha} onChange={(e) => setSenhas({ ...senhas, novaSenha: e.target.value })} autoComplete="new-password" erro={errosSenha.novaSenha} />}
           </Field>
           <Field label="Confirmar nova senha" erro={errosSenha.confirmar}>
-            {(id) => <Input id={id} type="password" value={senhas.confirmar} onChange={(e) => setSenhas({ ...senhas, confirmar: e.target.value })} autoComplete="new-password" erro={errosSenha.confirmar} />}
+            {(id) => <PasswordInput id={id} value={senhas.confirmar} onChange={(e) => setSenhas({ ...senhas, confirmar: e.target.value })} autoComplete="new-password" erro={errosSenha.confirmar} />}
           </Field>
         </div>
         <div>

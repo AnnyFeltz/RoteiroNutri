@@ -1,8 +1,9 @@
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { useState } from 'react'
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import { ArrowLeft } from 'lucide-react-native'
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native'
 import { cores, fonteTitulo, raio } from '../lib/tema'
 import { iniciais } from '../lib/formato'
 
@@ -94,11 +95,31 @@ const VARIANTES = {
   perigo: { caixa: { backgroundColor: cores.card, borderWidth: 1, borderColor: cores.borda }, texto: { color: cores.perigo } },
 }
 
-export function Campo({ rotulo, style, ...props }) {
+/** Campo de texto. Com `senha`, esconde o texto e mostra o botão de olhinho. */
+export function Campo({ rotulo, style, senha, ...props }) {
+  const [visivel, setVisivel] = useState(false)
   return (
     <View style={style}>
       {rotulo ? <Texto estilo="forte" style={{ marginBottom: 6, fontSize: 13 }}>{rotulo}</Texto> : null}
-      <TextInput placeholderTextColor={cores.textoSuave} style={estilos.input} {...props} />
+      <View style={{ justifyContent: 'center' }}>
+        <TextInput
+          placeholderTextColor={cores.textoSuave}
+          style={[estilos.input, senha && { paddingRight: 48 }]}
+          secureTextEntry={senha && !visivel}
+          autoCapitalize={senha ? 'none' : props.autoCapitalize}
+          {...props}
+        />
+        {senha && (
+          <Pressable
+            onPress={() => setVisivel((v) => !v)}
+            hitSlop={10}
+            style={{ position: 'absolute', right: 14 }}
+            accessibilityLabel={visivel ? 'Esconder senha' : 'Mostrar senha'}
+          >
+            {visivel ? <EyeOff size={20} color={cores.textoSuave} /> : <Eye size={20} color={cores.textoSuave} />}
+          </Pressable>
+        )}
+      </View>
     </View>
   )
 }
@@ -111,9 +132,12 @@ export function Selo({ texto, cor = cores.primaria, fundo = 'rgba(46,89,41,0.12)
   )
 }
 
-export function Avatar({ nome, cor = cores.primaria, tamanho = 44 }) {
+/** Foto de perfil; sem foto, mostra as iniciais na cor do usuário. */
+export function Avatar({ nome, cor = cores.primaria, foto, tamanho = 44 }) {
+  const forma = { width: tamanho, height: tamanho, borderRadius: tamanho / 2 }
+  if (foto) return <Image source={{ uri: foto }} style={[forma, { backgroundColor: cores.suave }]} accessibilityLabel={`Foto de ${nome}`} />
   return (
-    <View style={{ width: tamanho, height: tamanho, borderRadius: tamanho / 2, backgroundColor: cor, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={[forma, { backgroundColor: cor, alignItems: 'center', justifyContent: 'center' }]}>
       <Text style={{ color: cores.branco, fontWeight: '700', fontSize: tamanho * 0.36, fontFamily: fonteTitulo }}>{iniciais(nome)}</Text>
     </View>
   )

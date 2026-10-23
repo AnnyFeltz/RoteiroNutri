@@ -55,7 +55,7 @@ export default function Login() {
 
           <View style={{ gap: 14, marginTop: 28 }}>
             <Campo rotulo="E-mail" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" textContentType="emailAddress" />
-            <Campo rotulo="Senha" value={senha} onChangeText={setSenha} secureTextEntry autoComplete="password" textContentType="password" onSubmitEditing={enviar} />
+            <Campo rotulo="Senha" value={senha} onChangeText={setSenha} senha autoComplete="password" textContentType="password" onSubmitEditing={enviar} />
             <Pressable onPress={() => router.push('/esqueci-senha')} style={{ alignSelf: 'flex-end' }}>
               <Texto style={{ color: cores.primaria, fontSize: 13, fontWeight: '600' }}>Esqueci minha senha</Texto>
             </Pressable>

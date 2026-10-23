@@ -34,6 +34,12 @@ async function alterarSenha(nutricionistaId, { senhaAtual, novaSenha }) {
   await nutricionista.update({ senhaHash: await gerarHash(novaSenha) });
 }
 
+async function atualizarFoto(nutricionistaId, foto) {
+  const nutricionista = await perfil(nutricionistaId);
+  await nutricionista.update({ foto });
+  return nutricionista;
+}
+
 async function atualizarPreferencias(nutricionistaId, preferencias) {
   const nutricionista = await perfil(nutricionistaId);
   await nutricionista.update({ preferencias: { ...nutricionista.preferencias, ...preferencias } });
@@ -64,7 +70,7 @@ async function dashboard(nutricionistaId) {
   const [consultasHoje, consultasMes, planosAtivos, planosMes, adesoes, evolucoes] = await Promise.all([
     Consulta.findAll({
       where: { nutricionistaId, data: dataHoje },
-      include: [{ model: Paciente, as: 'paciente', attributes: ['id', 'nome', 'avatarCor'] }],
+      include: [{ model: Paciente, as: 'paciente', attributes: ['id', 'nome', 'avatarCor', 'foto'] }],
       order: [['horario', 'ASC']],
     }),
     Consulta.count({ where: { nutricionistaId, data: { [Op.gte]: inicioMes } } }),
@@ -140,11 +146,11 @@ async function dashboard(nutricionistaId) {
 async function evolucaoGeral(nutricionistaId) {
   const pacientes = await Paciente.findAll({
     where: { nutricionistaId, ativo: true },
-    attributes: ['id', 'nome', 'objetivo', 'avatarCor', 'pesoInicialKg', 'pesoAtualKg', 'pesoMetaKg'],
+    attributes: ['id', 'nome', 'objetivo', 'avatarCor', 'foto', 'pesoInicialKg', 'pesoAtualKg', 'pesoMetaKg'],
     include: [{ model: EvolucaoPeso, as: 'evolucao', attributes: ['data', 'pesoKg'] }],
     order: [['nome', 'ASC'], [{ model: EvolucaoPeso, as: 'evolucao' }, 'data', 'ASC']],
   });
   return pacientes;
 }
 
-module.exports = { perfil, atualizarPerfil, alterarSenha, atualizarPreferencias, dashboard, evolucaoGeral };
+module.exports = { perfil, atualizarPerfil, alterarSenha, atualizarFoto, atualizarPreferencias, dashboard, evolucaoGeral };

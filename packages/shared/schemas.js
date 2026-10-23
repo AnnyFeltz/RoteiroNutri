@@ -93,6 +93,15 @@ const atualizarPerfilPacienteSchema = z.object({
 
 const preferenciasSchema = z.record(z.boolean());
 
+// Foto de perfil: imagem em base64 (data URL), já reduzida pelo front. null remove a foto.
+const fotoSchema = z.object({
+  foto: z
+    .string()
+    .regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/, 'Imagem inválida')
+    .max(700_000, 'Imagem muito grande (máx. ~500 KB)')
+    .nullable(),
+});
+
 // RF10 / RF11 / RF12 - Plano alimentar com refeições, alimentos e substitutos
 const itemPlanoSchema = z.object({
   alimentoId: z.coerce.number().int().positive(),
@@ -175,6 +184,7 @@ module.exports = {
   atualizarPacienteSchema,
   atualizarPerfilPacienteSchema,
   preferenciasSchema,
+  fotoSchema,
   planoAlimentarSchema,
   consultaSchema,
   atualizarConsultaSchema,

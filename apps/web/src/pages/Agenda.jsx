@@ -59,7 +59,7 @@ export default function Agenda() {
               {proximas.data.slice(0, 8).map((c) => (
                 <li key={c.id}>
                   <Link to={`/nutri/agenda/${c.data}`} className="item-agenda">
-                    <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} tamanho="sm" />
+                    <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} foto={c.paciente.foto} tamanho="sm" />
                     <div className="expandir">
                       <p className="texto-medio cortar">{c.paciente.nome}</p>
                       <p className="texto-pequeno texto-suave">

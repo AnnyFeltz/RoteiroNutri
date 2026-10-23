@@ -25,7 +25,7 @@ async function listar(nutricionistaId, { inicio, fim, pacienteId } = {}) {
   if (pacienteId) where.pacienteId = pacienteId;
   return Consulta.findAll({
     where,
-    include: [{ model: Paciente, as: 'paciente', attributes: ['id', 'nome', 'avatarCor', 'ativo'] }],
+    include: [{ model: Paciente, as: 'paciente', attributes: ['id', 'nome', 'avatarCor', 'foto', 'ativo'] }],
     order: [['data', 'ASC'], ['horario', 'ASC']],
   });
 }

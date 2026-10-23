@@ -1,9 +1,12 @@
-import { Linking, Pressable, View } from 'react-native'
+import { ActivityIndicator, Alert, Linking, Platform, Pressable, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { LogOut, AlertTriangle, Target, Ruler, Mail, Phone, CalendarCheck, FileText, ChevronRight, Shield, Pencil } from 'lucide-react-native'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { LogOut, AlertTriangle, Target, Ruler, Mail, Phone, CalendarCheck, FileText, ChevronRight, Shield, Pencil, Camera } from 'lucide-react-native'
 import { imc, classificacaoImc } from '@RoteiroNutri/shared'
 import { Avatar, Botao, Cabecalho, Card, CardDestaque, Carregando, Erro, Tela, Texto, estilos } from '../../../components/ui'
+import { api } from '../../../lib/api'
 import { useAuth } from '../../../lib/auth'
+import { escolherFotoPerfil } from '../../../lib/foto'
 import { usePerfil } from '../../../lib/consultas'
 import { dataBR, mesAno, num, objetivoLabel } from '../../../lib/formato'
 import { cores } from '../../../lib/tema'
@@ -12,7 +15,33 @@ import { cores } from '../../../lib/tema'
 export default function Perfil() {
   const router = useRouter()
   const { sair } = useAuth()
+  const queryClient = useQueryClient()
   const { data: p, isLoading, error, refetch, isRefetching } = usePerfil()
+
+  const salvarFoto = useMutation({
+    mutationFn: (foto) => api('/app/foto', { method: 'PUT', body: { foto } }),
+    onSuccess: (novo) => queryClient.setQueryData(['perfil'], novo),
+    onError: (e) => Alert.alert('Não foi possível salvar a foto', e.message),
+  })
+
+  const trocarFoto = async () => {
+    try {
+      const foto = await escolherFotoPerfil()
+      if (foto) salvarFoto.mutate(foto)
+    } catch (e) {
+      Alert.alert('Foto de perfil', e.message)
+    }
+  }
+
+  // com foto: pergunta se quer trocar ou remover
+  const tocarNaFoto = () => {
+    if (!p.foto || Platform.OS === 'web') return trocarFoto()
+    Alert.alert('Foto de perfil', undefined, [
+      { text: 'Escolher outra foto', onPress: trocarFoto },
+      { text: 'Remover foto', style: 'destructive', onPress: () => salvarFoto.mutate(null) },
+      { text: 'Cancelar', style: 'cancel' },
+    ])
+  }
 
   if (isLoading) return <Carregando />
   if (error) return <Erro erro={error} onTentar={refetch} />
@@ -25,7 +54,26 @@ export default function Perfil() {
       <Cabecalho titulo="Meu Perfil" voltar={false} />
 
       <CardDestaque style={{ alignItems: 'center', paddingVertical: 24 }}>
-        <Avatar nome={p.nome} cor={p.avatarCor || cores.terracota} tamanho={80} />
+        <Pressable onPress={tocarNaFoto} disabled={salvarFoto.isPending} accessibilityLabel="Trocar foto de perfil">
+          <Avatar nome={p.nome} cor={p.avatarCor || cores.terracota} foto={p.foto} tamanho={88} />
+          <View
+            style={{
+              position: 'absolute',
+              right: -2,
+              bottom: -2,
+              width: 30,
+              height: 30,
+              borderRadius: 15,
+              backgroundColor: cores.branco,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 2,
+              borderColor: cores.primaria,
+            }}
+          >
+            {salvarFoto.isPending ? <ActivityIndicator size="small" color={cores.primaria} /> : <Camera size={15} color={cores.primaria} />}
+          </View>
+        </Pressable>
         <Texto estilo="tituloPequeno" style={{ color: cores.primariaTexto, fontSize: 20, marginTop: 10 }}>
           {p.nome}
         </Texto>
@@ -55,7 +103,7 @@ export default function Perfil() {
             Seu nutricionista
           </Texto>
           <View style={[estilos.linha, { gap: 12 }]}>
-            <Avatar nome={n.nome} tamanho={48} />
+            <Avatar nome={n.nome} foto={n.foto} tamanho={48} />
             <View style={{ flex: 1 }}>
               <Texto estilo="forte">{n.nome}</Texto>
               <Texto estilo="legenda">{n.crn}</Texto>

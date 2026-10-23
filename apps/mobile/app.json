@@ -32,7 +32,14 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Roteiro Nutri usa suas fotos para você escolher a foto de perfil.",
+          "cameraPermission": false
+        }
+      ]
     ]
   }
 }

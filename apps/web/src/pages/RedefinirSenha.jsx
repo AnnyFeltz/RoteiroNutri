@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { CheckCircle2 } from 'lucide-react'
 import { redefinirSenhaSchema } from '@RoteiroNutri/shared'
 import { AuthLayout } from '../components/AuthLayout'
-import { Button, Field, Input } from '../components/ui'
+import { Button, Field, PasswordInput } from '../components/ui'
 import { api } from '../lib/api'
 import { validar } from '../lib/validacao'
 
@@ -65,10 +65,10 @@ export default function RedefinirSenha() {
           <p className="subtitulo-pagina">Escolha uma nova senha segura para sua conta.</p>
           <form onSubmit={enviar} noValidate>
             <Field label="Nova senha" hint="Mínimo 6 caracteres." erro={erros.novaSenha}>
-              {(id) => <Input id={id} type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" erro={erros.novaSenha} />}
+              {(id) => <PasswordInput id={id} value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="new-password" erro={erros.novaSenha} />}
             </Field>
             <Field label="Confirmar nova senha" erro={erros.confirmar}>
-              {(id) => <Input id={id} type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} autoComplete="new-password" erro={erros.confirmar} />}
+              {(id) => <PasswordInput id={id} value={confirmar} onChange={(e) => setConfirmar(e.target.value)} autoComplete="new-password" erro={erros.confirmar} />}
             </Field>
             <Button type="submit" loading={carregando} className="btn-bloco">
               Redefinir senha

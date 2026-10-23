@@ -2,6 +2,7 @@ const {
   atualizarNutricionistaSchema,
   alterarSenhaSchema,
   preferenciasSchema,
+  fotoSchema,
 } = require('@RoteiroNutri/shared');
 const nutricionistaService = require('../services/nutricionistaService');
 
@@ -20,6 +21,11 @@ async function alterarSenha(req, res) {
   res.json({ mensagem: 'Senha alterada com sucesso' });
 }
 
+async function atualizarFoto(req, res) {
+  const { foto } = fotoSchema.parse(req.body);
+  res.json(await nutricionistaService.atualizarFoto(req.usuario.id, foto));
+}
+
 async function atualizarPreferencias(req, res) {
   const dados = preferenciasSchema.parse(req.body);
   res.json(await nutricionistaService.atualizarPreferencias(req.usuario.id, dados));
@@ -33,4 +39,4 @@ async function evolucaoGeral(req, res) {
   res.json(await nutricionistaService.evolucaoGeral(req.usuario.id));
 }
 
-module.exports = { perfil, atualizarPerfil, alterarSenha, atualizarPreferencias, dashboard, evolucaoGeral };
+module.exports = { perfil, atualizarPerfil, alterarSenha, atualizarFoto, atualizarPreferencias, dashboard, evolucaoGeral };

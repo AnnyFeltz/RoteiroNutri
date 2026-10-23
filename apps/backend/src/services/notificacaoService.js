@@ -4,7 +4,7 @@ const { gerarSenhaProvisoria } = require('../utils/aleatorio');
 const { enviarEmail } = require('../utils/email');
 const AppError = require('../utils/AppError');
 
-const incluirPaciente = [{ model: Paciente, as: 'paciente', attributes: ['id', 'nome', 'email', 'avatarCor'] }];
+const incluirPaciente = [{ model: Paciente, as: 'paciente', attributes: ['id', 'nome', 'email', 'avatarCor', 'foto'] }];
 
 async function contagem(nutricionistaId) {
   const [alteracoes, pedidos] = await Promise.all([

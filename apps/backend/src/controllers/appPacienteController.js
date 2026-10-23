@@ -2,6 +2,7 @@ const {
   atualizarPerfilPacienteSchema,
   alterarSenhaSchema,
   preferenciasSchema,
+  fotoSchema,
   consumoSchema,
   substituicaoSchema,
   evolucaoSchema,
@@ -24,6 +25,11 @@ async function alterarSenha(req, res) {
   const dados = alterarSenhaSchema.parse(req.body);
   await appPacienteService.alterarSenha(paciente(req), dados);
   res.json({ mensagem: 'Senha alterada com sucesso' });
+}
+
+async function atualizarFoto(req, res) {
+  const { foto } = fotoSchema.parse(req.body);
+  res.json(await appPacienteService.atualizarFoto(paciente(req), foto));
 }
 
 async function atualizarPreferencias(req, res) {
@@ -67,6 +73,7 @@ module.exports = {
   perfil,
   atualizarPerfil,
   alterarSenha,
+  atualizarFoto,
   atualizarPreferencias,
   planoDoDia,
   historicoPlanos,

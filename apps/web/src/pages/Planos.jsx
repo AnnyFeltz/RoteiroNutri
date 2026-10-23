@@ -63,7 +63,7 @@ export default function Planos() {
         )}
         {linhas.map(({ paciente: p, planoAtivo: ativo, totalVersoes }) => (
           <Card key={p.id} className="linha linha-quebra" style={{ gap: 16 }}>
-            <Avatar nome={p.nome} cor={p.avatarCor} tamanho="md" />
+            <Avatar nome={p.nome} cor={p.avatarCor} foto={p.foto} tamanho="md" />
             <div className="expandir" style={{ minWidth: 200 }}>
               <p className="texto-medio">{p.nome}</p>
               <p className="texto-pequeno texto-suave">

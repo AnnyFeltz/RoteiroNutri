@@ -79,7 +79,7 @@ export default function PacienteDetalhe() {
 
       <Card className="card-amplo cabecalho-pagina" style={{ alignItems: 'center' }}>
         <div className="linha" style={{ gap: 16 }}>
-          <Avatar nome={p.nome} cor={p.avatarCor} tamanho="lg" />
+          <Avatar nome={p.nome} cor={p.avatarCor} foto={p.foto} tamanho="lg" />
           <div>
             <div className="linha linha-quebra">
               <h1 className="numero-medio">{p.nome}</h1>

@@ -68,7 +68,7 @@ export default function AgendaDia() {
         <div className="pilha">
           {consultas.map((c) => (
             <Card key={c.id} className="linha linha-quebra" style={{ gap: 16 }}>
-              <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} tamanho="md" />
+              <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} foto={c.paciente.foto} tamanho="md" />
               <div className="expandir" style={{ minWidth: 200 }}>
                 <div className="linha-sm linha-quebra">
                   <h3 className="texto-forte" style={{ fontFamily: 'var(--fonte-texto)', fontSize: 15 }}>
