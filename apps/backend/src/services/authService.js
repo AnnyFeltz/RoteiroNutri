@@ -2,13 +2,15 @@ const { Nutricionista, Paciente } = require('../models');
 const { gerarHash, compararSenha } = require('../utils/senha');
 const { gerarToken } = require('../utils/jwt');
 const { gerarTokenRecuperacao } = require('../utils/aleatorio');
+const { enviarEmail } = require('../utils/email');
 const AppError = require('../utils/AppError');
 
 const UMA_HORA_MS = 60 * 60 * 1000;
 
 // RN01 / RF01 - Cadastro de Nutricionista
 async function cadastrarNutricionista({ nome, email, senha, crn }) {
-  const existente = await Nutricionista.findOne({ where: { email } });
+  const existente =
+    (await Nutricionista.findOne({ where: { email } })) || (await Paciente.findOne({ where: { email } }));
   if (existente) {
     throw new AppError('Já existe um nutricionista cadastrado com este e-mail', 409);
   }
@@ -71,9 +73,15 @@ async function solicitarRecuperacaoSenha({ email }) {
   modelo.tokenExpiraEm = new Date(Date.now() + UMA_HORA_MS);
   await modelo.save();
 
-  // TODO: integrar envio real de e-mail (ex: nodemailer/SES/SendGrid).
-  // Por enquanto, logamos para facilitar o desenvolvimento local.
-  console.log(`[recuperação de senha] e-mail=${email} token=${token}`);
+  const urlWeb = process.env.WEB_URL || 'http://localhost:5173';
+  await enviarEmail({
+    para: email,
+    assunto: 'Redefinição de senha — Roteiro Nutri',
+    texto:
+      `Olá, ${modelo.nome}!\n\nRecebemos um pedido para redefinir sua senha. ` +
+      `Acesse o link abaixo (válido por 1 hora):\n\n${urlWeb}/redefinir-senha?token=${token}\n\n` +
+      'Se você não fez esse pedido, ignore este e-mail.',
+  });
 }
 
 // RF03 / RN09 - Redefinir senha usando o token recebido por e-mail
@@ -93,7 +101,17 @@ async function redefinirSenha({ token, novaSenha }) {
   await modelo.save();
 }
 
+// Dados do usuário logado (usado pelos front-ends ao abrir o app)
+async function usuarioLogado({ id, tipo }) {
+  const modelo = tipo === 'nutricionista' ? Nutricionista : Paciente;
+  const usuario = await modelo.findByPk(id);
+  if (!usuario) throw new AppError('Usuário não encontrado', 401);
+  if (tipo === 'paciente' && !usuario.ativo) throw new AppError('Paciente inativo. Procure seu nutricionista.', 403);
+  return { tipo, usuario };
+}
+
 module.exports = {
+  usuarioLogado,
   cadastrarNutricionista,
   loginNutricionista,
   loginPaciente,

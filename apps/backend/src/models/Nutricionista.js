@@ -36,6 +36,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         field: 'token_expira_em',
       },
+      telefone: DataTypes.STRING,
+      preferencias: {
+        type: DataTypes.JSONB,
+        allowNull: false,
+        defaultValue: {},
+      },
     },
     {
       tableName: 'nutricionistas',

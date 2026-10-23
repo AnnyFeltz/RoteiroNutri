@@ -51,6 +51,15 @@ module.exports = (sequelize, DataTypes) => {
       estiloVida: { type: DataTypes.TEXT, field: 'estilo_vida' },
       recordatorioAlimentar: { type: DataTypes.TEXT, field: 'recordatorio_alimentar' },
       dataInicio: { type: DataTypes.DATEONLY, field: 'data_inicio' },
+      telefone: DataTypes.STRING,
+      avatarCor: { type: DataTypes.STRING, field: 'avatar_cor' },
+      preferencias: {
+        type: DataTypes.JSONB,
+        allowNull: false,
+        defaultValue: {},
+      },
+      // RN04 - plano que estava ativo quando o paciente foi desativado
+      ultimoPlanoId: { type: DataTypes.UUID, field: 'ultimo_plano_id' },
       // RN03/RN04 - o nutricionista pode desativar o paciente
       ativo: {
         type: DataTypes.BOOLEAN,

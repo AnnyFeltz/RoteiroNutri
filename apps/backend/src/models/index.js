@@ -17,17 +17,59 @@ const sequelize = new Sequelize(
 const db = { sequelize, Sequelize };
 
 // Cada model se registra em db.<NomeDoModel>
-db.Nutricionista = require('./Nutricionista')(sequelize, Sequelize.DataTypes);
-db.Paciente = require('./Paciente')(sequelize, Sequelize.DataTypes);
+const MODELS = [
+  'Nutricionista',
+  'Paciente',
+  'Alimento',
+  'PlanoAlimentar',
+  'Refeicao',
+  'RefeicaoAlimento',
+  'Substituto',
+  'Adesao',
+  'Consulta',
+  'EvolucaoPeso',
+  'AlteracaoPerfil',
+  'SolicitacaoSenha',
+];
+for (const nome of MODELS) {
+  db[nome] = require(`./${nome}`)(sequelize, Sequelize.DataTypes);
+}
 
-// Associações
-db.Nutricionista.hasMany(db.Paciente, {
-  foreignKey: 'nutricionistaId',
-  as: 'pacientes',
-});
-db.Paciente.belongsTo(db.Nutricionista, {
-  foreignKey: 'nutricionistaId',
-  as: 'nutricionista',
-});
+const {
+  Nutricionista, Paciente, Alimento, PlanoAlimentar, Refeicao, RefeicaoAlimento,
+  Substituto, Adesao, Consulta, EvolucaoPeso, AlteracaoPerfil, SolicitacaoSenha,
+} = db;
+
+// Associações (seguem o modelo relacional do TCC)
+Nutricionista.hasMany(Paciente, { foreignKey: 'nutricionistaId', as: 'pacientes' });
+Paciente.belongsTo(Nutricionista, { foreignKey: 'nutricionistaId', as: 'nutricionista' });
+
+Paciente.hasMany(PlanoAlimentar, { foreignKey: 'pacienteId', as: 'planos' });
+PlanoAlimentar.belongsTo(Paciente, { foreignKey: 'pacienteId', as: 'paciente' });
+
+PlanoAlimentar.hasMany(Refeicao, { foreignKey: 'planoId', as: 'refeicoes' });
+Refeicao.belongsTo(PlanoAlimentar, { foreignKey: 'planoId', as: 'plano' });
+
+Refeicao.hasMany(RefeicaoAlimento, { foreignKey: 'refeicaoId', as: 'itens' });
+RefeicaoAlimento.belongsTo(Refeicao, { foreignKey: 'refeicaoId', as: 'refeicao' });
+RefeicaoAlimento.belongsTo(Alimento, { foreignKey: 'alimentoId', as: 'alimento' });
+
+RefeicaoAlimento.hasMany(Substituto, { foreignKey: 'refeicaoAlimentoId', as: 'substitutos' });
+Substituto.belongsTo(RefeicaoAlimento, { foreignKey: 'refeicaoAlimentoId', as: 'item' });
+Substituto.belongsTo(Alimento, { foreignKey: 'alimentoId', as: 'alimento' });
+
+Refeicao.hasMany(Adesao, { foreignKey: 'refeicaoId', as: 'adesoes' });
+Adesao.belongsTo(Refeicao, { foreignKey: 'refeicaoId', as: 'refeicao' });
+Paciente.hasMany(Adesao, { foreignKey: 'pacienteId', as: 'adesoes' });
+
+Paciente.hasMany(Consulta, { foreignKey: 'pacienteId', as: 'consultas' });
+Consulta.belongsTo(Paciente, { foreignKey: 'pacienteId', as: 'paciente' });
+Nutricionista.hasMany(Consulta, { foreignKey: 'nutricionistaId', as: 'consultas' });
+
+Paciente.hasMany(EvolucaoPeso, { foreignKey: 'pacienteId', as: 'evolucao' });
+EvolucaoPeso.belongsTo(Paciente, { foreignKey: 'pacienteId', as: 'paciente' });
+
+AlteracaoPerfil.belongsTo(Paciente, { foreignKey: 'pacienteId', as: 'paciente' });
+SolicitacaoSenha.belongsTo(Paciente, { foreignKey: 'pacienteId', as: 'paciente' });
 
 module.exports = db;

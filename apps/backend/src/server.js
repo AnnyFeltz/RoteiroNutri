@@ -12,15 +12,14 @@ const { registrarSocket } = require('./sockets');
 
 const app = express();
 const httpServer = createServer(app);
+// CORS_ORIGIN aceita várias origens separadas por vírgula (web, expo web...)
+const origens = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()) : '*';
 const io = new Server(httpServer, {
-  cors: { origin: process.env.CORS_ORIGIN || '*' },
+  cors: { origin: origens },
 });
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
-app.use(express.json());
-
-// deixa o io acessível dentro dos controllers/services via req.app.get('io')
-app.set('io', io);
+app.use(cors({ origin: origens }));
+app.use(express.json({ limit: '1mb' }));
 
 app.use('/api', router);
 
