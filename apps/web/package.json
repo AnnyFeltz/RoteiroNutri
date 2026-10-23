@@ -11,18 +11,26 @@
   },
   "dependencies": {
     "@RoteiroNutri/shared": "workspace:*",
+    "@tanstack/react-query": "^5.104.5",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "lucide-react": "^1.31.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4",
+    "recharts": "^3.10.1",
     "socket.io-client": "^4.8.3",
-    "zod": "^4.4.3"
+    "sonner": "^2.0.8",
+    "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
     "oxlint": "^1.75.0",
+    "tailwindcss": "^4.3.3",
     "vite": "^8.2.0"
   }
 }
