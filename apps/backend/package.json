@@ -14,7 +14,7 @@
     "db:seed:demo": "sequelize-cli db:seed --seed 20260920200100-dados-demonstracao.js",
     "db:seed:undo:demo": "sequelize-cli db:seed:undo --seed 20260920200100-dados-demonstracao.js",
     "db:setup": "npm run db:migrate && npm run db:seed:taco",
-    "test": "node --test test/"
+    "test": "node --test \"test/**/*.test.js\""
   },
   "dependencies": {
     "@RoteiroNutri/shared": "workspace:*",

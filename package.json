@@ -6,7 +6,9 @@
     "dev:web": "turbo dev --filter=web",
     "dev:mobile": "turbo dev --filter=mobile",
     "dev:backend": "turbo dev --filter=backend",
-    "build": "turbo build"
+    "build": "turbo build",
+    "db:setup": "pnpm --filter backend db:setup",
+    "db:seed:demo": "pnpm --filter backend db:seed:demo"
   },
   "devDependencies": {
     "turbo": "latest"

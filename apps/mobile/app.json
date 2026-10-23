@@ -1,24 +1,38 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Roteiro Nutri",
+    "slug": "roteiro-nutri",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "br.edu.ifpr.roteironutri"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FAF7EC",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "package": "br.edu.ifpr.roteironutri"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "scheme": "roteironutri",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF7EC"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ]
   }
 }
