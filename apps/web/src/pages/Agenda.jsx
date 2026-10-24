@@ -5,7 +5,7 @@ import { CalendarDays, Clock } from 'lucide-react'
 import { Avatar, Badge, Card, Carregando } from '../components/ui'
 import { Calendario } from '../components/Calendario'
 import { api } from '../lib/api'
-import { dataBR, isoLocal } from '../lib/format'
+import { dataBR, diaSemana, isoLocal } from '../lib/format'
 
 // RN14 / RF09 - Agenda do nutricionista
 export default function Agenda() {
@@ -21,6 +21,16 @@ export default function Agenda() {
     placeholderData: (anterior) => anterior,
   })
   const proximas = useQuery({ queryKey: ['consultas', { inicio: hoje }], queryFn: () => api('/consultas', { query: { inicio: hoje } }) })
+
+  // agrupa as próximas consultas por data (mostra os próximos 5 dias com consulta)
+  const porDia = useMemo(() => {
+    const grupos = new Map()
+    for (const c of proximas.data || []) {
+      if (!grupos.has(c.data)) grupos.set(c.data, [])
+      grupos.get(c.data).push(c)
+    }
+    return [...grupos].slice(0, 5)
+  }, [proximas.data])
 
   const marcados = useMemo(() => new Set((doMes.data || []).map((c) => c.data)), [doMes.data])
 
@@ -55,21 +65,31 @@ export default function Agenda() {
           ) : proximas.data.length === 0 ? (
             <p className="texto-suave">Nenhuma consulta agendada.</p>
           ) : (
-            <ul className="pilha-sm">
-              {proximas.data.slice(0, 8).map((c) => (
-                <li key={c.id}>
-                  <Link to={`/nutri/agenda/${c.data}`} className="item-agenda">
-                    <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} foto={c.paciente.foto} tamanho="sm" />
-                    <div className="expandir">
-                      <p className="texto-medio cortar">{c.paciente.nome}</p>
-                      <p className="texto-pequeno texto-suave">
-                        {dataBR(c.data)} • {c.horario} • {c.tipo}
-                      </p>
-                    </div>
+            <div className="pilha">
+              {porDia.map(([data, lista]) => (
+                <section key={data}>
+                  <Link to={`/nutri/agenda/${data}`} className="agenda-dia-titulo">
+                    <span>{dataBR(data).slice(0, 5)}</span>
+                    <span className="texto-suave">{data === hoje ? 'Hoje' : diaSemana(data)}</span>
                   </Link>
-                </li>
+                  <ul className="pilha-sm">
+                    {lista.map((c) => (
+                      <li key={c.id}>
+                        <Link to={`/nutri/agenda/${c.data}`} className="item-agenda">
+                          <Avatar nome={c.paciente.nome} cor={c.paciente.avatarCor} foto={c.paciente.foto} tamanho="sm" />
+                          <div className="expandir">
+                            <p className="texto-medio cortar">{c.paciente.nome}</p>
+                            <p className="texto-pequeno texto-suave">
+                              {c.horario} • {c.tipo}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               ))}
-            </ul>
+            </div>
           )}
         </Card>
       </div>

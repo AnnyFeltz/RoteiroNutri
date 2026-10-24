@@ -327,6 +327,23 @@
   background: var(--destaque);
 }
 
+.agenda-dia-titulo {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 0 8px 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--borda);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--primaria);
+}
+
+.agenda-dia-titulo .texto-suave {
+  font-weight: 400;
+  font-size: 12px;
+}
+
 .resumo-2-linhas {
   display: -webkit-box;
   -webkit-line-clamp: 2;
