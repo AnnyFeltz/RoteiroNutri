@@ -1,6 +1,6 @@
 # RoteiroNutri — Mobile (paciente)
 
-App **exclusivo do paciente** (Expo SDK 57 + Expo Router). O nutricionista usa o painel web (`apps/web`).
+App **exclusivo do paciente** (Expo SDK 58 + Expo Router). O nutricionista usa o painel web (`apps/web`).
 
 ```bash
 pnpm dev:mobile        # a partir da raiz (ou: cd apps/mobile && npx expo start)
