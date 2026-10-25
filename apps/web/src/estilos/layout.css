@@ -343,11 +343,32 @@
 }
 
 .auth-formulario {
+  position: relative;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px 24px;
+}
+
+.auth-voltar {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: var(--raio-sm);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--texto-suave);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.auth-voltar:hover {
+  background: var(--destaque);
+  color: var(--texto);
 }
 
 .auth-caixa {

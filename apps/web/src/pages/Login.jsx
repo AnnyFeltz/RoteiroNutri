@@ -63,7 +63,13 @@ export default function Login() {
             Cadastre-se
           </Link>
         </p>
-        <p className="centro texto-pequeno texto-suave">É paciente? Acesse pelo app Roteiro Nutri no seu celular.</p>
+        <p className="centro texto-pequeno texto-suave">
+          É paciente?{' '}
+          <Link to="/paciente" className="link">
+            Baixe o app Roteiro Nutri
+          </Link>{' '}
+          no seu celular.
+        </p>
       </form>
     </AuthLayout>
   )

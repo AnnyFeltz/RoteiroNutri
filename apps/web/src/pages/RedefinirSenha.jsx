@@ -41,7 +41,7 @@ export default function RedefinirSenha() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout voltar="/login" textoVoltar="Voltar ao login">
       {!token ? (
         <div className="auth-sucesso">
           <h1>Link inválido</h1>

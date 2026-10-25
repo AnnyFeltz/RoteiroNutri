@@ -1,6 +1,9 @@
+import { Link } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { Logo } from './Logo'
 
-export function AuthLayout({ children, frase = '"Centralize sua rotina e foque no que importa: cuidar de cada paciente."' }) {
+/** voltar: rota do botão "Voltar" no topo do formulário (padrão: página inicial). */
+export function AuthLayout({ children, voltar = '/', textoVoltar = 'Voltar ao início', frase = '"Centralize sua rotina e foque no que importa: cuidar de cada paciente."' }) {
   return (
     <div className="auth">
       <div className="auth-lado">
@@ -15,6 +18,9 @@ export function AuthLayout({ children, frase = '"Centralize sua rotina e foque n
         <div className="auth-copyright">© Roteiro Nutri</div>
       </div>
       <div className="auth-formulario">
+        <Link to={voltar} className="auth-voltar">
+          <ArrowLeft size={16} /> {textoVoltar}
+        </Link>
         <div className="auth-caixa">
           <div className="auth-logo-mobile">
             <Logo altura={40} />

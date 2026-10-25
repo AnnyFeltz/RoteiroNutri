@@ -31,7 +31,7 @@ export default function EsqueciSenha() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout voltar="/login" textoVoltar="Voltar ao login">
       {enviado ? (
         <div className="auth-sucesso">
           <CheckCircle2 />
