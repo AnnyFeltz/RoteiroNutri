@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Pressable, View, useWindowDimensions } from 'react-native'
+import { View, useWindowDimensions } from 'react-native'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { TrendingDown, TrendingUp, Plus, Target } from 'lucide-react-native'
-import { imc, classificacaoImc, progressoMeta, evolucaoSchema } from '@RoteiroNutri/shared'
+import { TrendingDown, TrendingUp, Target, PencilLine } from 'lucide-react-native'
+import { imc, classificacaoImc, progressoMeta, medidasPacienteSchema } from '@RoteiroNutri/shared'
 import { BarraProgresso, Botao, Cabecalho, Campo, Card, Carregando, Erro, Selo, Tela, Texto, estilos } from '../../../components/ui'
 import { Linha } from '../../../components/graficos'
 import { api } from '../../../lib/api'
@@ -18,7 +18,7 @@ export default function Evolucao() {
   const evolucao = useEvolucao()
   const perfil = usePerfil()
   const [registrando, setRegistrando] = useState(false)
-  const [peso, setPeso] = useState('')
+  const [medidas, setMedidas] = useState({ peso: '', altura: '' })
   const [erro, setErro] = useState('')
 
   const registrar = useMutation({
@@ -27,15 +27,29 @@ export default function Evolucao() {
       queryClient.setQueryData(['evolucao'], novo)
       queryClient.invalidateQueries({ queryKey: ['perfil'] })
       setRegistrando(false)
-      setPeso('')
       setErro('')
     },
     onError: (e) => setErro(e.message),
   })
 
-  const enviarPeso = () => {
-    const { dados, erro: invalido } = validar(evolucaoSchema, { pesoKg: peso.replace(',', '.'), data: hojeLocal() })
-    if (invalido) return setErro(invalido)
+  // O paciente atualiza peso e/ou altura (o nutricionista é notificado)
+  const abrirAtualizacao = () => {
+    const p = evolucao.data?.paciente
+    setMedidas({ peso: p?.pesoAtualKg != null ? String(p.pesoAtualKg) : '', altura: p?.alturaCm != null ? String(p.alturaCm) : '' })
+    setErro('')
+    setRegistrando((x) => !x)
+  }
+
+  const salvarMedidas = () => {
+    const p = evolucao.data.paciente
+    const peso = medidas.peso.replace(',', '.')
+    const altura = medidas.altura.replace(',', '.')
+    const { dados, erro: invalido } = validar(medidasPacienteSchema, {
+      data: hojeLocal(),
+      pesoKg: peso && Number(peso) !== p.pesoAtualKg ? peso : undefined,
+      alturaCm: altura && Number(altura) !== p.alturaCm ? altura : undefined,
+    })
+    if (invalido) return setErro(invalido === 'Informe o peso ou a altura' ? 'Altere o peso ou a altura para salvar.' : invalido)
     registrar.mutate(dados)
   }
 
@@ -53,24 +67,39 @@ export default function Evolucao() {
 
   return (
     <Tela aoAtualizar={() => Promise.all([evolucao.refetch(), perfil.refetch()])} atualizando={evolucao.isRefetching}>
-      <Cabecalho
-        titulo="Sua Evolução"
-        voltar={false}
-        direita={
-          <Pressable hitSlop={12} onPress={() => setRegistrando((x) => !x)} accessibilityLabel="Registrar peso">
-            <Plus size={22} color={cores.primaria} />
-          </Pressable>
-        }
+      <Cabecalho titulo="Sua Evolução" voltar={false} />
+
+      <Botao
+        titulo={registrando ? 'Fechar' : 'Atualizar dados'}
+        variante={registrando ? 'contorno' : 'primario'}
+        icone={registrando ? undefined : <PencilLine size={16} color={cores.primariaTexto} />}
+        onPress={abrirAtualizacao}
       />
 
       {registrando && (
         <Card style={{ backgroundColor: 'rgba(242,226,208,0.4)', gap: 10 }}>
-          <Texto estilo="forte">Registrar peso de hoje</Texto>
+          <Texto estilo="forte">Atualizar peso e altura</Texto>
+          <Texto estilo="legenda">O peso de hoje entra no seu histórico. Seu nutricionista é avisado da atualização.</Texto>
           <View style={[estilos.linha, { gap: 8 }]}>
-            <Campo style={{ flex: 1 }} value={peso} onChangeText={setPeso} keyboardType="decimal-pad" placeholder="kg" autoFocus />
-            <Botao titulo="Salvar" onPress={enviarPeso} carregando={registrar.isPending} desabilitado={!peso} />
+            <Campo
+              rotulo="Peso (kg)"
+              style={{ flex: 1 }}
+              value={medidas.peso}
+              onChangeText={(v) => setMedidas({ ...medidas, peso: v })}
+              keyboardType="decimal-pad"
+              placeholder="ex: 62,5"
+            />
+            <Campo
+              rotulo="Altura (cm)"
+              style={{ flex: 1 }}
+              value={medidas.altura}
+              onChangeText={(v) => setMedidas({ ...medidas, altura: v })}
+              keyboardType="decimal-pad"
+              placeholder="ex: 168"
+            />
           </View>
-          {erro ? <Texto style={{ color: cores.perigo, fontSize: 12 }}>{erro}</Texto> : null}
+          {erro ? <Texto style={{ color: cores.perigo, fontSize: 13 }}>{erro}</Texto> : null}
+          <Botao titulo="Salvar" onPress={salvarMedidas} carregando={registrar.isPending} />
         </Card>
       )}
 
@@ -117,7 +146,7 @@ export default function Evolucao() {
           Histórico de peso
         </Texto>
         {registros.length === 0 ? (
-          <Texto estilo="legenda">Nenhuma pesagem registrada ainda. Toque em + para registrar.</Texto>
+          <Texto estilo="legenda">Nenhuma pesagem registrada ainda. Toque em “Atualizar dados” para registrar.</Texto>
         ) : (
           <Linha largura={largura} dados={registros.map((r) => ({ valor: r.pesoKg, rotulo: diaMes(r.data) }))} />
         )}

@@ -4,7 +4,7 @@ const {
   fotoSchema,
   consumoSchema,
   substituicaoSchema,
-  evolucaoSchema,
+  medidasPacienteSchema,
   dataSchema,
 } = require('@RoteiroNutri/shared');
 const appPacienteService = require('../services/appPacienteService');
@@ -57,9 +57,9 @@ async function evolucao(req, res) {
   res.json(await appPacienteService.evolucao(paciente(req)));
 }
 
-async function registrarPeso(req, res) {
-  const dados = evolucaoSchema.parse(req.body);
-  res.status(201).json(await appPacienteService.registrarPeso(paciente(req), dados));
+async function atualizarMedidas(req, res) {
+  const dados = medidasPacienteSchema.parse(req.body);
+  res.status(201).json(await appPacienteService.atualizarMedidas(paciente(req), dados));
 }
 
 module.exports = {
@@ -73,5 +73,5 @@ module.exports = {
   escolherSubstituto,
   consultas,
   evolucao,
-  registrarPeso,
+  atualizarMedidas,
 };

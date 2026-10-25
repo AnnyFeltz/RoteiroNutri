@@ -21,6 +21,6 @@ router.put('/itens/:itemId/substituto', asyncHandler(c.escolherSubstituto));
 router.get('/consultas', asyncHandler(c.consultas));
 // RF21
 router.get('/evolucao', asyncHandler(c.evolucao));
-router.post('/evolucao', asyncHandler(c.registrarPeso));
+router.post('/evolucao', asyncHandler(c.atualizarMedidas)); // peso e/ou altura
 
 module.exports = router;

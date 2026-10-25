@@ -7,7 +7,7 @@ import { Badge, Button, Card, Carregando, ErroCarregamento } from '../components
 import { api } from '../lib/api'
 import { dataHoraBR } from '../lib/format'
 
-const CAMPO = { nome: 'Nome', email: 'E-mail', telefone: 'Telefone' }
+const CAMPO = { nome: 'Nome', email: 'E-mail', telefone: 'Telefone', peso: 'Peso (kg)', altura: 'Altura (cm)' }
 
 // Alterações de perfil feitas pelos pacientes (RN18)
 export default function Notificacoes() {

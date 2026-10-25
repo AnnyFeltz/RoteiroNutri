@@ -193,19 +193,6 @@ async function reativar(nutricionistaId, pacienteId) {
   return paciente;
 }
 
-// Nutricionista gera uma nova senha para o paciente (ex: paciente perdeu o acesso)
-async function gerarNovaSenha(nutricionistaId, pacienteId) {
-  const paciente = await buscarPacienteDoNutricionista(nutricionistaId, pacienteId);
-  const novaSenha = gerarSenhaProvisoria();
-  await Paciente.update({ senhaHash: await gerarHash(novaSenha) }, { where: { id: paciente.id } });
-  const emailEnviado = await enviarEmail({
-    para: paciente.email,
-    assunto: 'Nova senha do app Roteiro Nutri',
-    texto: `Olá, ${paciente.nome}!\n\nSua nova senha de acesso ao app é: ${novaSenha}\n`,
-  });
-  return { email: paciente.email, novaSenha, emailEnviado };
-}
-
 /**
  * Registra (ou substitui, se já houver no mesmo dia) uma pesagem e
  * atualiza o peso atual do paciente. Usado pelo nutricionista e pelo app.
@@ -262,7 +249,6 @@ module.exports = {
   atualizar,
   desativar,
   reativar,
-  gerarNovaSenha,
   registrarPesagem,
   registrarEvolucao,
   removerEvolucao,

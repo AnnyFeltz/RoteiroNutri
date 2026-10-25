@@ -216,14 +216,39 @@ async function evolucao(pacienteId) {
   };
 }
 
-async function registrarPeso(pacienteId, dados) {
-  await buscarPacienteLogado(pacienteId);
-  const dia = dados.data || hoje();
-  if (dia > hoje()) throw new AppError('Não é possível registrar peso em uma data futura', 422);
-  const paciente = await Paciente.findByPk(pacienteId);
-  // pelo app o paciente registra só o peso; medidas corporais ficam com o nutricionista (RN18)
-  await sequelize.transaction((t) => registrarPesagem(pacienteId, { data: dia, pesoKg: dados.pesoKg }, 'paciente', t));
+// O paciente atualiza o próprio peso e/ou altura; o nutricionista é notificado
+async function atualizarMedidas(pacienteId, { data, pesoKg, alturaCm }) {
+  const paciente = await buscarPacienteLogado(pacienteId);
+  const dia = data || hoje();
+  if (dia > hoje()) throw new AppError('Não é possível registrar medidas em uma data futura', 422);
+
+  const alteracoes = [];
+  if (pesoKg !== undefined && pesoKg !== paciente.pesoAtualKg) {
+    alteracoes.push({ campo: 'peso', valorAntigo: paciente.pesoAtualKg ?? '', valorNovo: pesoKg });
+  }
+  if (alturaCm !== undefined && alturaCm !== paciente.alturaCm) {
+    alteracoes.push({ campo: 'altura', valorAntigo: paciente.alturaCm ?? '', valorNovo: alturaCm });
+  }
+
+  await sequelize.transaction(async (t) => {
+    // a pesagem entra no histórico de evolução (medidas corporais continuam com o nutricionista)
+    if (pesoKg !== undefined) await registrarPesagem(pacienteId, { data: dia, pesoKg }, 'paciente', t);
+    if (alturaCm !== undefined) await paciente.update({ alturaCm }, { transaction: t });
+    if (alteracoes.length) {
+      await AlteracaoPerfil.bulkCreate(
+        alteracoes.map((a) => ({
+          ...a,
+          valorAntigo: String(a.valorAntigo),
+          valorNovo: String(a.valorNovo),
+          pacienteId,
+          nutricionistaId: paciente.nutricionistaId,
+        })),
+        { transaction: t }
+      );
+    }
+  });
   notificar('nutricionista', paciente.nutricionistaId, 'paciente:peso', { pacienteId });
+  if (alteracoes.length) notificar('nutricionista', paciente.nutricionistaId, 'notificacao', { tipo: 'alteracao-perfil', pacienteId });
   return evolucao(pacienteId);
 }
 
@@ -238,5 +263,5 @@ module.exports = {
   escolherSubstituto,
   consultas,
   evolucao,
-  registrarPeso,
+  atualizarMedidas,
 };

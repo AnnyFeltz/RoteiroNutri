@@ -38,9 +38,10 @@ A divisão de acesso é garantida pela API: rotas do painel só aceitam token de
 | React Router / Expo Router | Navegação entre telas (web / app) |
 | TanStack React Query | Cache e atualização dos dados vindos da API |
 | Recharts / react-native-svg | Gráficos (web / app) |
-| jsPDF + jspdf-autotable | Exportação da ficha do paciente em PDF |
+| jsPDF + jspdf-autotable | Exportação da ficha do paciente em PDF (web do nutricionista) |
 | Sonner | Avisos (toasts) na web |
 | expo-secure-store | Guarda o login do paciente com segurança no celular |
+| expo-print + expo-sharing | Ficha do paciente em PDF gerada no app e compartilhada |
 | expo-image-picker + expo-image-manipulator | Foto de perfil do paciente (escolhida da galeria e reduzida antes de enviar) |
 | Turborepo + pnpm | Monorepo (roda web, mobile e API juntos) |
 

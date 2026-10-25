@@ -1,8 +1,10 @@
-import { Alert, Share, View } from 'react-native'
+import { useState } from 'react'
+import { Alert, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Shield, KeyRound, Share2, Trash2 } from 'lucide-react-native'
+import { Shield, KeyRound, FileDown, Trash2 } from 'lucide-react-native'
 import { Botao, Cabecalho, Card, Tela, Texto, estilos } from '../../../components/ui'
-import { usePerfil, useEvolucao } from '../../../lib/consultas'
+import { usePerfil, useEvolucao, usePlanoDoDia, useConsultas } from '../../../lib/consultas'
+import { exportarFichaPaciente } from '../../../lib/fichaPdf'
 import { cores } from '../../../lib/tema'
 
 // Privacidade (LGPD) e redefinição de senha pelo e-mail cadastrado (RF03 / RN09)
@@ -10,15 +12,20 @@ export default function Privacidade() {
   const router = useRouter()
   const perfil = usePerfil()
   const evolucao = useEvolucao()
+  const plano = usePlanoDoDia()
+  const consultas = useConsultas()
+  const [exportando, setExportando] = useState(false)
 
-  // LGPD: o paciente pode obter uma cópia dos próprios dados
-  const compartilharDados = async () => {
-    const { nutricionista, ...dados } = perfil.data || {}
-    const conteudo = JSON.stringify({ perfil: dados, nutricionista: nutricionista?.nome, evolucao: evolucao.data?.registros }, null, 2)
+  // RF15 / LGPD: o paciente exporta a própria ficha (versão do paciente da ficha do nutricionista) em PDF
+  const exportarDados = async () => {
+    if (!perfil.data) return
+    setExportando(true)
     try {
-      await Share.share({ title: 'Meus dados — Roteiro Nutri', message: conteudo })
-    } catch {
-      Alert.alert('Não foi possível compartilhar')
+      await exportarFichaPaciente({ perfil: perfil.data, plano: plano.data?.plano, evolucao: evolucao.data, consultas: consultas.data })
+    } catch (e) {
+      Alert.alert('Não foi possível gerar o PDF', e.message)
+    } finally {
+      setExportando(false)
     }
   }
 
@@ -50,7 +57,15 @@ export default function Privacidade() {
 
       <Card style={{ gap: 10 }}>
         <Texto estilo="rotulo">Seus dados</Texto>
-        <Botao titulo="Exportar meus dados" variante="contorno" icone={<Share2 size={16} color={cores.texto} />} onPress={compartilharDados} />
+        <Texto estilo="legenda">Baixe sua ficha nutricional completa em PDF: dados, avaliação, evolução, plano alimentar e consultas.</Texto>
+        <Botao
+          titulo="Exportar meus dados (PDF)"
+          variante="contorno"
+          icone={<FileDown size={16} color={cores.texto} />}
+          onPress={exportarDados}
+          carregando={exportando}
+          desabilitado={perfil.isLoading}
+        />
         <Botao
           titulo="Excluir minha conta"
           variante="perigo"

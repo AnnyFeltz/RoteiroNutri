@@ -168,6 +168,15 @@ const evolucaoSchema = z.object({
   massaMagraPct: percentualOpcional,
 });
 
+// Paciente atualiza as próprias medidas (peso e/ou altura) pelo app
+const medidasPacienteSchema = z
+  .object({
+    data: dataSchema.optional(),
+    pesoKg: z.coerce.number().min(20, 'Peso inválido').max(400, 'Peso inválido').optional(),
+    alturaCm: z.coerce.number().min(50, 'Altura inválida').max(250, 'Altura inválida').optional(),
+  })
+  .refine((d) => d.pesoKg !== undefined || d.alturaCm !== undefined, { message: 'Informe o peso ou a altura' });
+
 // RF20 / RF25 - Registrar consumo
 const consumoSchema = z.object({
   data: dataSchema.optional(),
@@ -201,6 +210,7 @@ module.exports = {
   consultaSchema,
   atualizarConsultaSchema,
   evolucaoSchema,
+  medidasPacienteSchema,
   consumoSchema,
   substituicaoSchema,
 };

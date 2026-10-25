@@ -19,8 +19,8 @@ Também roda no navegador (`w` no terminal do Expo), útil para testes.
 | Login / esqueci a senha (código enviado ao e-mail cadastrado; nova senha definida no app) | RF16, RF03, RN08, RN09 |
 | Início: kcal e macros do dia, próxima refeição, sequência, adesão semanal | RNF01, RF23 |
 | Plano do dia e detalhe da refeição: marcar como consumida, trocar por substituto | RF18, RF19, RF20, RF25 |
-| Evolução: registrar peso, gráficos de peso e adesão, composição corporal | RF21 |
-| Perfil com foto (escolhida da galeria), editar dados pessoais (nutricionista é notificado), histórico de planos, redefinir senha pelo e-mail | RF17, RF24, RN09, RN18 |
+| Evolução: botão “Atualizar dados” (peso e altura; o nutricionista é notificado), gráficos de peso e adesão, composição corporal | RF21 |
+| Perfil com foto (escolhida da galeria), editar dados pessoais (nutricionista é notificado), histórico de planos, redefinir senha pelo e-mail, exportar a própria ficha nutricional em PDF (Privacidade → Exportar meus dados) | RF17, RF24, RN09, RN18 |
 
 O token de acesso fica no armazenamento seguro do aparelho (`expo-secure-store`). Quando o
 nutricionista publica um novo plano, o app atualiza em tempo real (Socket.io).

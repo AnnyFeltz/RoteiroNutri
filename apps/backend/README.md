@@ -93,7 +93,6 @@ Todas as rotas validam o corpo com **Zod** (`packages/shared`) e retornam erros 
 | GET/POST | `/pacientes` (cadastro gera a senha do app) | RF04, RF07, RN08 |
 | GET/PUT | `/pacientes/:id` | RF05, RF08 |
 | PATCH | `/pacientes/:id/desativar` · `/reativar` | RF06, RN04 |
-| POST | `/pacientes/:id/nova-senha` | — |
 | GET/POST | `/pacientes/:id/planos` (POST cria nova versão) | RF10, RF11, RF12, RN07 |
 | POST/DELETE | `/pacientes/:id/evolucao` | RF21 |
 | GET | `/planos` (painel global) · `/planos/:id` | RF14 |
@@ -108,7 +107,7 @@ Todas as rotas validam o corpo com **Zod** (`packages/shared`) e retornam erros 
 | GET | `/plano?data=` (plano ativo + refeições consumidas no dia) · `/planos` | RF18 |
 | PUT | `/refeicoes/:id/consumo` | RF20, RF25 |
 | PUT | `/itens/:id/substituto` | RF19, RN13 |
-| GET/POST | `/evolucao` | RF21 |
+| GET/POST | `/evolucao` (POST: paciente atualiza peso e/ou altura) | RF21, RN18 |
 | GET | `/consultas` | RF23 |
 
 ### TACO — qualquer usuário logado
