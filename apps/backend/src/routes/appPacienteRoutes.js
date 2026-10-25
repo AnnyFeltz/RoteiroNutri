@@ -8,7 +8,8 @@ const router = express.Router();
 // RF17 / RF24
 router.get('/perfil', asyncHandler(c.perfil));
 router.put('/perfil', asyncHandler(c.atualizarPerfil));
-router.put('/senha', asyncHandler(c.alterarSenha));
+// RN09 - a troca de senha passa pela aprovação do nutricionista
+router.post('/senha/solicitar', asyncHandler(c.pedirNovaSenha));
 router.put('/foto', asyncHandler(c.atualizarFoto));
 router.put('/preferencias', asyncHandler(c.atualizarPreferencias));
 // RF18

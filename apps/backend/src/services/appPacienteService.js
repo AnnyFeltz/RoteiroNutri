@@ -4,7 +4,6 @@ const {
   sequelize, Nutricionista, Paciente, PlanoAlimentar, Refeicao, RefeicaoAlimento, Substituto,
   Adesao, Consulta, EvolucaoPeso, AlteracaoPerfil, SolicitacaoSenha,
 } = require('../models');
-const { gerarHash, compararSenha } = require('../utils/senha');
 const { hoje, somarDias } = require('../utils/datas');
 const { buscarPacienteLogado } = require('../utils/acesso');
 const { includePlanoCompleto, orderPlanoCompleto } = require('./planoIncludes');
@@ -66,13 +65,6 @@ async function atualizarPerfil(pacienteId, dados) {
     notificar('nutricionista', paciente.nutricionistaId, 'notificacao', { tipo: 'alteracao-perfil', pacienteId });
   }
   return perfil(pacienteId);
-}
-
-async function alterarSenha(pacienteId, { senhaAtual, novaSenha }) {
-  await buscarPacienteLogado(pacienteId);
-  const paciente = await Paciente.scope('comSenha').findByPk(pacienteId);
-  if (!(await compararSenha(senhaAtual, paciente.senhaHash))) throw new AppError('Senha atual incorreta', 400);
-  await paciente.update({ senhaHash: await gerarHash(novaSenha) });
 }
 
 // O paciente pode trocar a própria foto de perfil (dado pessoal - RN18)
@@ -235,21 +227,34 @@ async function registrarPeso(pacienteId, dados) {
   return evolucao(pacienteId);
 }
 
+/** Cria o pedido de nova senha (se ainda não houver um pendente) e avisa o nutricionista. */
+async function criarPedidoSenha(paciente) {
+  const pendente = await SolicitacaoSenha.findOne({ where: { pacienteId: paciente.id, status: 'pendente' } });
+  if (pendente) return false;
+  await SolicitacaoSenha.create({ pacienteId: paciente.id, nutricionistaId: paciente.nutricionistaId });
+  notificar('nutricionista', paciente.nutricionistaId, 'notificacao', { tipo: 'pedido-senha', pacienteId: paciente.id });
+  return true;
+}
+
 // Paciente esqueceu a senha: o pedido vai para o nutricionista aprovar (RN09)
 async function solicitarNovaSenha({ email }) {
   const paciente = await Paciente.findOne({ where: { email } });
   // Resposta é sempre genérica para não revelar quais e-mails existem
   if (!paciente || !paciente.ativo) return;
-  const pendente = await SolicitacaoSenha.findOne({ where: { pacienteId: paciente.id, status: 'pendente' } });
-  if (pendente) return;
-  await SolicitacaoSenha.create({ pacienteId: paciente.id, nutricionistaId: paciente.nutricionistaId });
-  notificar('nutricionista', paciente.nutricionistaId, 'notificacao', { tipo: 'pedido-senha', pacienteId: paciente.id });
+  await criarPedidoSenha(paciente);
+}
+
+// RN09 - logado, o paciente também não troca a senha sozinho: pede ao nutricionista
+async function pedirNovaSenha(pacienteId) {
+  const paciente = await buscarPacienteLogado(pacienteId);
+  const criado = await criarPedidoSenha(paciente);
+  return { jaPendente: !criado };
 }
 
 module.exports = {
   perfil,
   atualizarPerfil,
-  alterarSenha,
+  pedirNovaSenha,
   atualizarFoto,
   atualizarPreferencias,
   planoDoDia,

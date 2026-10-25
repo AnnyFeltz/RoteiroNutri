@@ -106,7 +106,7 @@ Todas as rotas validam o corpo com **Zod** (`packages/shared`) e retornam erros 
 
 | Método | Rota | Requisito |
 |--------|------|-----------|
-| GET/PUT | `/perfil` · PUT `/senha` | RF17, RF24, RN18 |
+| GET/PUT | `/perfil` · POST `/senha/solicitar` (pede nova senha ao nutricionista) | RF17, RF24, RN09, RN18 |
 | GET | `/plano?data=` (plano ativo + refeições consumidas no dia) · `/planos` | RF18 |
 | PUT | `/refeicoes/:id/consumo` | RF20, RF25 |
 | PUT | `/itens/:id/substituto` | RF19, RN13 |

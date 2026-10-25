@@ -1,6 +1,5 @@
 const {
   atualizarPerfilPacienteSchema,
-  alterarSenhaSchema,
   preferenciasSchema,
   fotoSchema,
   consumoSchema,
@@ -21,10 +20,14 @@ async function atualizarPerfil(req, res) {
   res.json(await appPacienteService.atualizarPerfil(paciente(req), dados));
 }
 
-async function alterarSenha(req, res) {
-  const dados = alterarSenhaSchema.parse(req.body);
-  await appPacienteService.alterarSenha(paciente(req), dados);
-  res.json({ mensagem: 'Senha alterada com sucesso' });
+async function pedirNovaSenha(req, res) {
+  const { jaPendente } = await appPacienteService.pedirNovaSenha(paciente(req));
+  res.json({
+    jaPendente,
+    mensagem: jaPendente
+      ? 'Você já tem um pedido aguardando o seu nutricionista.'
+      : 'Pedido enviado. Quando seu nutricionista aprovar, a nova senha chegará no seu e-mail.',
+  });
 }
 
 async function atualizarFoto(req, res) {
@@ -72,7 +75,7 @@ async function registrarPeso(req, res) {
 module.exports = {
   perfil,
   atualizarPerfil,
-  alterarSenha,
+  pedirNovaSenha,
   atualizarFoto,
   atualizarPreferencias,
   planoDoDia,

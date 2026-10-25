@@ -1,35 +1,34 @@
 import { useState } from 'react'
-import { Alert, Share, View } from 'react-native'
+import { Alert, Platform, Share, View } from 'react-native'
 import { useMutation } from '@tanstack/react-query'
 import { Shield, KeyRound, Share2, Trash2 } from 'lucide-react-native'
-import { Botao, Cabecalho, Campo, Card, Tela, Texto, estilos } from '../../../components/ui'
-import { alterarSenhaSchema } from '@RoteiroNutri/shared'
+import { Botao, Cabecalho, Card, Tela, Texto, estilos } from '../../../components/ui'
 import { api } from '../../../lib/api'
-import { validar } from '../../../lib/validacao'
 import { usePerfil, useEvolucao } from '../../../lib/consultas'
 import { cores } from '../../../lib/tema'
 
-// Privacidade (LGPD) e troca de senha
+// Privacidade (LGPD) e pedido de nova senha (RN09: o nutricionista aprova)
 export default function Privacidade() {
   const perfil = usePerfil()
   const evolucao = useEvolucao()
-  const [senhas, setSenhas] = useState({ senhaAtual: '', novaSenha: '', confirmar: '' })
   const [mensagem, setMensagem] = useState(null)
 
-  const alterar = useMutation({
-    mutationFn: (dados) => api('/app/senha', { method: 'PUT', body: dados }),
-    onSuccess: () => {
-      setSenhas({ senhaAtual: '', novaSenha: '', confirmar: '' })
-      setMensagem({ ok: true, texto: 'Senha alterada com sucesso.' })
-    },
+  const pedir = useMutation({
+    mutationFn: () => api('/app/senha/solicitar', { method: 'POST' }),
+    onSuccess: (r) => setMensagem({ ok: true, texto: r.mensagem }),
     onError: (e) => setMensagem({ ok: false, texto: e.message }),
   })
 
-  const trocarSenha = () => {
-    const { dados, erro } = validar(alterarSenhaSchema, { senhaAtual: senhas.senhaAtual, novaSenha: senhas.novaSenha })
-    if (erro) return setMensagem({ ok: false, texto: erro })
-    if (senhas.novaSenha !== senhas.confirmar) return setMensagem({ ok: false, texto: 'A confirmação não confere.' })
-    alterar.mutate(dados)
+  const pedirNovaSenha = () => {
+    if (Platform.OS === 'web') return pedir.mutate()
+    Alert.alert(
+      'Pedir nova senha',
+      'Seu nutricionista vai receber o pedido. Quando ele aprovar, uma nova senha será enviada para o seu e-mail.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Enviar pedido', onPress: () => pedir.mutate() },
+      ]
+    )
   }
 
   // LGPD: o paciente pode obter uma cópia dos próprios dados
@@ -57,13 +56,13 @@ export default function Privacidade() {
       <Card style={{ gap: 12 }}>
         <View style={[estilos.linha, { gap: 6 }]}>
           <KeyRound size={16} color={cores.primaria} />
-          <Texto estilo="forte">Alterar senha</Texto>
+          <Texto estilo="forte">Senha</Texto>
         </View>
-        <Campo rotulo="Senha atual" senha value={senhas.senhaAtual} onChangeText={(v) => setSenhas({ ...senhas, senhaAtual: v })} />
-        <Campo rotulo="Nova senha" senha value={senhas.novaSenha} onChangeText={(v) => setSenhas({ ...senhas, novaSenha: v })} />
-        <Campo rotulo="Confirmar nova senha" senha value={senhas.confirmar} onChangeText={(v) => setSenhas({ ...senhas, confirmar: v })} />
+        <Texto estilo="legenda">
+          Para trocar a senha, faça o pedido ao seu nutricionista. Depois que ele aprovar, a nova senha chega no seu e-mail.
+        </Texto>
         {mensagem && <Texto style={{ color: mensagem.ok ? cores.primaria : cores.perigo, fontSize: 13 }}>{mensagem.texto}</Texto>}
-        <Botao titulo="Alterar senha" onPress={trocarSenha} carregando={alterar.isPending} />
+        <Botao titulo="Pedir nova senha ao nutricionista" onPress={pedirNovaSenha} carregando={pedir.isPending} />
       </Card>
 
       <Card style={{ gap: 10 }}>
