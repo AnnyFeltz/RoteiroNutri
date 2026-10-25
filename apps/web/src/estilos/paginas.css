@@ -401,3 +401,21 @@
   border-color: var(--primaria);
   background: oklch(0.42 0.09 142 / 0.05);
 }
+
+/* aviso de substitutos que deixaram de ser equivalentes (editor de plano) */
+.aviso-equivalencia {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--terracota);
+  cursor: pointer;
+}
+
+.aviso-equivalencia:hover {
+  text-decoration: underline;
+}

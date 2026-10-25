@@ -23,6 +23,11 @@ const REFEICOES_PADRAO = () => [
   { key: chave(), nome: 'Jantar', horario: '19:00', itens: [] },
 ]
 
+// RN12 - gramagem do substituto que mantém a mesma energia do alimento original
+const gramasDoSubstituto = (item, s) => gramasEquivalentes(item.alimento, item.gramas, s.alimento)
+const foraDeEquivalencia = (item) => item.substitutos.filter((s) => s.gramas !== gramasDoSubstituto(item, s)).length
+const equivalerItem = (item) => ({ ...item, substitutos: item.substitutos.map((s) => ({ ...s, gramas: gramasDoSubstituto(item, s) })) })
+
 // Converte o plano vindo da API para o estado editável
 function paraEdicao(plano) {
   return plano.refeicoes.map((r) => ({
@@ -116,6 +121,13 @@ export default function PlanoEditor() {
   }
 
   const atualizarRefeicao = (idx, nova) => setRefeicoes((rs) => rs.map((r, i) => (i === idx ? nova : r)))
+
+  // Recalcula de uma vez a gramagem de todos os substitutos do plano
+  const desalinhados = refeicoes.reduce((n, r) => n + r.itens.reduce((m, item) => m + foraDeEquivalencia(item), 0), 0)
+  const equivalerTodos = () => {
+    setRefeicoes((rs) => rs.map((r) => ({ ...r, itens: r.itens.map(equivalerItem) })))
+    toast.success(`${desalinhados} substituto${desalinhados === 1 ? '' : 's'} ajustado${desalinhados === 1 ? '' : 's'} para a mesma energia do alimento`)
+  }
   const diferencaOk = Math.abs(totalKcal - kcalAlvo) <= kcalAlvo * 0.05
 
   return (
@@ -125,6 +137,14 @@ export default function PlanoEditor() {
           <ArrowLeft size={16} /> Voltar para {p.nome}
         </Link>
         <div className="acoes">
+          <Button
+            variant="outline"
+            onClick={equivalerTodos}
+            disabled={desalinhados === 0}
+            title={desalinhados ? 'Recalcula a gramagem de todos os substitutos do plano' : 'Todos os substitutos já estão equivalentes'}
+          >
+            <Scale /> Equivaler substitutos{desalinhados > 0 && ` (${desalinhados})`}
+          </Button>
           <Button variant="outline" onClick={() => nav(-1)}>
             Cancelar
           </Button>
@@ -310,6 +330,7 @@ function RefeicaoBloco({ refeicao, onChange, onRemover }) {
 function ItemLinha({ item, onChange, onRemover }) {
   const [substituicoes, setSubstituicoes] = useState(false)
   const c = calcularAlimento(item.alimento, item.gramas)
+  const fora = foraDeEquivalencia(item)
   return (
     <li className="item-plano">
       <span className="emoji">{iconeAlimento(item.alimento)}</span>
@@ -317,6 +338,11 @@ function ItemLinha({ item, onChange, onRemover }) {
         <p className="texto-medio">{item.alimento.nome}</p>
         <p className="texto-pequeno texto-suave">
           {c.kcal} kcal · C {c.carbo}g · P {c.proteina}g · G {c.gordura}g · {item.substitutos.length} substituições
+          {fora > 0 && (
+            <button type="button" className="aviso-equivalencia" onClick={() => onChange(equivalerItem(item))} title="Recalcular a gramagem dos substitutos deste alimento">
+              <Scale size={12} /> {fora} fora de equivalência — equivaler
+            </button>
+          )}
         </p>
       </div>
       <div className="linha-sm">
@@ -339,6 +365,7 @@ function SubstituicoesModal({ open, onClose, item, onChange }) {
   const [escolhendo, setEscolhendo] = useState(false)
   const original = calcularAlimento(item.alimento, item.gramas)
   const atualizar = (idx, novo) => onChange({ ...item, substitutos: item.substitutos.map((s, i) => (i === idx ? novo : s)) })
+  const fora = foraDeEquivalencia(item)
 
   return (
     <>
@@ -361,7 +388,7 @@ function SubstituicoesModal({ open, onClose, item, onChange }) {
                 </div>
                 <Input type="number" min="1" className="campo-curto" value={s.gramas} onChange={(e) => atualizar(i, { ...s, gramas: Math.max(0, +e.target.value || 0) })} aria-label="Gramas do substituto" />
                 <span className="texto-pequeno texto-suave">g</span>
-                <Button variant="ghost" size="icon" title="Recalcular gramagem equivalente" onClick={() => atualizar(i, { ...s, gramas: gramasEquivalentes(item.alimento, item.gramas, s.alimento) })}>
+                <Button variant="ghost" size="icon" title="Recalcular gramagem equivalente" onClick={() => atualizar(i, { ...s, gramas: gramasDoSubstituto(item, s) })}>
                   <Scale />
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => onChange({ ...item, substitutos: item.substitutos.filter((_, j) => j !== i) })} title="Remover">
@@ -372,9 +399,14 @@ function SubstituicoesModal({ open, onClose, item, onChange }) {
           })}
           {item.substitutos.length === 0 && <li className="centro texto-suave" style={{ padding: '12px 0' }}>Nenhum equivalente ainda.</li>}
         </ul>
-        <Button variant="outline" className="btn-bloco" style={{ marginTop: 12 }} onClick={() => setEscolhendo(true)}>
-          <Plus /> Adicionar equivalente
-        </Button>
+        <div className="linha" style={{ marginTop: 12 }}>
+          <Button variant="outline" className="expandir" onClick={() => setEscolhendo(true)}>
+            <Plus /> Adicionar equivalente
+          </Button>
+          <Button variant="outline" onClick={() => onChange(equivalerItem(item))} disabled={fora === 0} title="Recalcula a gramagem de todos os substitutos deste alimento">
+            <Scale /> Equivaler todos
+          </Button>
+        </div>
       </Modal>
       <FoodPicker
         open={open && escolhendo}
