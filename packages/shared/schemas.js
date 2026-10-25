@@ -53,6 +53,17 @@ const redefinirSenhaSchema = z.object({
   novaSenha: senhaSchema,
 });
 
+// RF03 / RN09 - Paciente redefine a senha no app com o código recebido por e-mail
+const redefinirSenhaPacienteSchema = z.object({
+  email: emailSchema,
+  codigo: z
+    .string({ required_error: 'Informe o código' })
+    .trim()
+    .transform((v) => v.toUpperCase())
+    .pipe(z.string().length(8, 'O código tem 8 caracteres')),
+  novaSenha: senhaSchema,
+});
+
 const alterarSenhaSchema = z.object({
   senhaAtual: z.string().min(1, 'Informe a senha atual'),
   novaSenha: senhaSchema,
@@ -179,6 +190,7 @@ module.exports = {
   loginSchema,
   solicitarRecuperacaoSenhaSchema,
   redefinirSenhaSchema,
+  redefinirSenhaPacienteSchema,
   alterarSenhaSchema,
   cadastrarPacienteSchema,
   atualizarPacienteSchema,

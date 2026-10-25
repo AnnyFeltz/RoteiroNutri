@@ -20,16 +20,6 @@ async function atualizarPerfil(req, res) {
   res.json(await appPacienteService.atualizarPerfil(paciente(req), dados));
 }
 
-async function pedirNovaSenha(req, res) {
-  const { jaPendente } = await appPacienteService.pedirNovaSenha(paciente(req));
-  res.json({
-    jaPendente,
-    mensagem: jaPendente
-      ? 'Você já tem um pedido aguardando o seu nutricionista.'
-      : 'Pedido enviado. Quando seu nutricionista aprovar, a nova senha chegará no seu e-mail.',
-  });
-}
-
 async function atualizarFoto(req, res) {
   const { foto } = fotoSchema.parse(req.body);
   res.json(await appPacienteService.atualizarFoto(paciente(req), foto));
@@ -75,7 +65,6 @@ async function registrarPeso(req, res) {
 module.exports = {
   perfil,
   atualizarPerfil,
-  pedirNovaSenha,
   atualizarFoto,
   atualizarPreferencias,
   planoDoDia,

@@ -14,8 +14,9 @@ router.post('/pacientes/login', asyncHandler(authController.loginPaciente));
 // RF03
 router.post('/recuperar-senha', asyncHandler(authController.solicitarRecuperacaoSenha));
 router.post('/redefinir-senha', asyncHandler(authController.redefinirSenha));
-// RN09 - paciente pede nova senha ao nutricionista (app mobile)
+// RF03 / RN09 - paciente (app): código por e-mail e redefinição no próprio app
 router.post('/pacientes/solicitar-senha', asyncHandler(authController.solicitarSenhaPaciente));
+router.post('/pacientes/redefinir-senha', asyncHandler(authController.redefinirSenhaPaciente));
 
 router.get('/me', autenticar, asyncHandler(authController.me));
 

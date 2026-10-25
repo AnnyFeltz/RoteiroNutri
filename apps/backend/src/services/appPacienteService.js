@@ -2,7 +2,7 @@
 const { Op } = require('sequelize');
 const {
   sequelize, Nutricionista, Paciente, PlanoAlimentar, Refeicao, RefeicaoAlimento, Substituto,
-  Adesao, Consulta, EvolucaoPeso, AlteracaoPerfil, SolicitacaoSenha,
+  Adesao, Consulta, EvolucaoPeso, AlteracaoPerfil,
 } = require('../models');
 const { hoje, somarDias } = require('../utils/datas');
 const { buscarPacienteLogado } = require('../utils/acesso');
@@ -227,34 +227,9 @@ async function registrarPeso(pacienteId, dados) {
   return evolucao(pacienteId);
 }
 
-/** Cria o pedido de nova senha (se ainda não houver um pendente) e avisa o nutricionista. */
-async function criarPedidoSenha(paciente) {
-  const pendente = await SolicitacaoSenha.findOne({ where: { pacienteId: paciente.id, status: 'pendente' } });
-  if (pendente) return false;
-  await SolicitacaoSenha.create({ pacienteId: paciente.id, nutricionistaId: paciente.nutricionistaId });
-  notificar('nutricionista', paciente.nutricionistaId, 'notificacao', { tipo: 'pedido-senha', pacienteId: paciente.id });
-  return true;
-}
-
-// Paciente esqueceu a senha: o pedido vai para o nutricionista aprovar (RN09)
-async function solicitarNovaSenha({ email }) {
-  const paciente = await Paciente.findOne({ where: { email } });
-  // Resposta é sempre genérica para não revelar quais e-mails existem
-  if (!paciente || !paciente.ativo) return;
-  await criarPedidoSenha(paciente);
-}
-
-// RN09 - logado, o paciente também não troca a senha sozinho: pede ao nutricionista
-async function pedirNovaSenha(pacienteId) {
-  const paciente = await buscarPacienteLogado(pacienteId);
-  const criado = await criarPedidoSenha(paciente);
-  return { jaPendente: !criado };
-}
-
 module.exports = {
   perfil,
   atualizarPerfil,
-  pedirNovaSenha,
   atualizarFoto,
   atualizarPreferencias,
   planoDoDia,
@@ -264,5 +239,4 @@ module.exports = {
   consultas,
   evolucao,
   registrarPeso,
-  solicitarNovaSenha,
 };

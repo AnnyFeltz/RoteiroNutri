@@ -162,7 +162,7 @@ export default function Configuracoes() {
         <div className="linha entre" style={{ gap: 16 }}>
           <div>
             <p className="texto-medio">Avisos em tempo real</p>
-            <p className="texto-pequeno texto-suave">Mostrar um aviso na tela quando um paciente pedir nova senha ou alterar o perfil pelo app.</p>
+            <p className="texto-pequeno texto-suave">Mostrar um aviso na tela quando um paciente alterar o perfil pelo app.</p>
           </div>
           <Switch label="Avisos em tempo real" checked={avisos} disabled={salvarPreferencia.isPending} onChange={(v) => salvarPreferencia.mutate({ avisosTempoReal: v })} />
         </div>

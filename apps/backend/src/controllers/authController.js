@@ -3,9 +3,9 @@ const {
   loginSchema,
   solicitarRecuperacaoSenhaSchema,
   redefinirSenhaSchema,
+  redefinirSenhaPacienteSchema,
 } = require('@RoteiroNutri/shared');
 const authService = require('../services/authService');
-const appPacienteService = require('../services/appPacienteService');
 
 async function registrarNutricionista(req, res) {
   const dados = cadastrarNutricionistaSchema.parse(req.body);
@@ -40,11 +40,17 @@ async function redefinirSenha(req, res) {
   res.status(200).json({ mensagem: 'Senha redefinida com sucesso.' });
 }
 
-// Paciente esqueceu a senha pelo app: o pedido vai para o nutricionista aprovar
+// RF03 / RN09 - Paciente: código de redefinição enviado ao e-mail cadastrado
 async function solicitarSenhaPaciente(req, res) {
   const dados = solicitarRecuperacaoSenhaSchema.parse(req.body);
-  await appPacienteService.solicitarNovaSenha(dados);
-  res.status(200).json({ mensagem: 'Se o e-mail estiver cadastrado, seu nutricionista receberá o pedido.' });
+  await authService.solicitarRecuperacaoSenhaPaciente(dados);
+  res.status(200).json({ mensagem: 'Se o e-mail estiver cadastrado, enviamos um código para redefinir a senha.' });
+}
+
+async function redefinirSenhaPaciente(req, res) {
+  const dados = redefinirSenhaPacienteSchema.parse(req.body);
+  await authService.redefinirSenhaPaciente(dados);
+  res.status(200).json({ mensagem: 'Senha redefinida com sucesso.' });
 }
 
 async function me(req, res) {
@@ -54,6 +60,7 @@ async function me(req, res) {
 module.exports = {
   me,
   solicitarSenhaPaciente,
+  redefinirSenhaPaciente,
   registrarNutricionista,
   loginNutricionista,
   loginPaciente,

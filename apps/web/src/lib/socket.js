@@ -14,12 +14,11 @@ export function useNotificacoesTempoReal(token, mostrarAvisos = true) {
     if (!token) return
     const socket = io(SOCKET_URL, { auth: { token }, transports: ['websocket', 'polling'] })
 
-    socket.on('notificacao', ({ tipo }) => {
+    socket.on('notificacao', () => {
       queryClient.invalidateQueries({ queryKey: ['notificacoes'] })
       queryClient.invalidateQueries({ queryKey: ['pacientes'] })
       if (!mostrarAvisos) return
-      if (tipo === 'pedido-senha') toast.info('Um paciente pediu uma nova senha')
-      else toast.info('Um paciente atualizou o perfil')
+      toast.info('Um paciente atualizou o perfil')
     })
     socket.on('paciente:peso', () => {
       queryClient.invalidateQueries({ queryKey: ['pacientes'] })

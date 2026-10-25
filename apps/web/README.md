@@ -20,7 +20,7 @@ pnpm dev:web              # a partir da raiz do monorepo
 | Agenda | Calendário do mês e **próximas consultas agrupadas por data** (próximos 5 dias com consulta); clicar no dia abre as consultas dele |
 | Alimentos (TACO) | Busca na tabela TACO (597 alimentos) |
 | Evolução e relatórios | Gráficos de evolução e ficha do paciente em PDF |
-| Notificações | Avisos em tempo real (Socket.io): paciente alterou o perfil, pediu nova senha, registrou peso |
+| Notificações | Avisos em tempo real (Socket.io): paciente alterou o perfil, registrou peso |
 | Configurações | Dados do nutricionista, **foto de perfil**, troca de senha e preferências |
 
 ## Estilo (CSS)

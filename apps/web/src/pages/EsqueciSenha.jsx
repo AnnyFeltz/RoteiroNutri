@@ -56,7 +56,7 @@ export default function EsqueciSenha() {
             <Button type="submit" loading={carregando} className="btn-bloco">
               <Mail /> Enviar link
             </Button>
-            <p className="centro texto-pequeno texto-suave">Paciente? Peça uma nova senha pelo app — seu nutricionista aprova o pedido.</p>
+            <p className="centro texto-pequeno texto-suave">Paciente? Redefina a senha pelo app, em “Esqueci minha senha”.</p>
             <p className="centro">
               <Link to="/login" className="link">
                 Voltar ao login

@@ -24,7 +24,7 @@ A divisão de acesso é garantida pela API: rotas do painel só aceitam token de
 | **PostgreSQL** | Banco de dados (administrado pelo **DBeaver**) |
 | **Lucide** | Ícones (`lucide-react` na web e `lucide-react-native` no app) |
 | **Zod** | Validação: os mesmos schemas validam os formulários da web, do app e as requisições na API |
-| **Socket.io** | Notificações em tempo real (paciente alterou o perfil, pediu nova senha, novo plano publicado...) |
+| **Socket.io** | Notificações em tempo real (paciente alterou o perfil, registrou peso, novo plano publicado...) |
 | **CSS** | Estilo da web em CSS puro (`apps/web/src/estilos`); no app, `StyleSheet` do React Native |
 
 ### Bibliotecas de apoio

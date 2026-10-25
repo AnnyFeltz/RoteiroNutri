@@ -18,13 +18,4 @@ async function limpar(req, res) {
   res.status(204).end();
 }
 
-async function aprovarPedidoSenha(req, res) {
-  res.json(await notificacaoService.aprovarPedidoSenha(req.usuario.id, req.params.id));
-}
-
-async function negarPedidoSenha(req, res) {
-  await notificacaoService.negarPedidoSenha(req.usuario.id, req.params.id);
-  res.status(204).end();
-}
-
-module.exports = { listar, contagem, marcarLidas, limpar, aprovarPedidoSenha, negarPedidoSenha };
+module.exports = { listar, contagem, marcarLidas, limpar };

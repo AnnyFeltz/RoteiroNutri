@@ -61,8 +61,7 @@ nutricionistas 1─N pacientes 1─N planos_alimentares 1─N refeicoes 1─N re
                       │                                    │                │                     │
                       ├─N consultas                        └─N adesoes      └──── alimentos (TACO) ┘
                       ├─N evolucao_peso
-                      ├─N alteracoes_perfil   (notificações para o nutricionista)
-                      └─N solicitacoes_senha  (pedido de nova senha do paciente)
+                      └─N alteracoes_perfil   (notificações para o nutricionista)
 ```
 
 Regras garantidas pelo banco: e-mail único, **um único plano ativo por paciente** (índice único parcial — RN07)
@@ -80,8 +79,8 @@ Todas as rotas validam o corpo com **Zod** (`packages/shared`) e retornam erros 
 | POST | `/nutricionistas/registrar` | RF01 |
 | POST | `/nutricionistas/login` | RF02 |
 | POST | `/pacientes/login` | RF16 |
-| POST | `/recuperar-senha` · `/redefinir-senha` | RF03 (link por e-mail) |
-| POST | `/pacientes/solicitar-senha` | RN09 (pedido aprovado pelo nutricionista) |
+| POST | `/recuperar-senha` · `/redefinir-senha` | RF03 / RN09 — nutricionista (link por e-mail, válido por 1 hora) |
+| POST | `/pacientes/solicitar-senha` · `/pacientes/redefinir-senha` | RF03 / RN09 (código de 8 caracteres enviado ao e-mail, válido por 1 hora) |
 | GET | `/me` | usuário logado |
 
 ### Web — somente nutricionista
@@ -100,13 +99,12 @@ Todas as rotas validam o corpo com **Zod** (`packages/shared`) e retornam erros 
 | GET | `/planos` (painel global) · `/planos/:id` | RF14 |
 | GET/POST/PUT/DELETE | `/consultas` · GET `/consultas/horarios-ocupados?data=` | RF22, RN16, RN17 |
 | GET | `/notificacoes` · `/notificacoes/contagem` | — |
-| POST | `/notificacoes/pedidos-senha/:id/aprovar` · `/negar` | RN09 |
 
 ### Mobile — somente paciente (`/api/app`)
 
 | Método | Rota | Requisito |
 |--------|------|-----------|
-| GET/PUT | `/perfil` · POST `/senha/solicitar` (pede nova senha ao nutricionista) | RF17, RF24, RN09, RN18 |
+| GET/PUT | `/perfil` | RF17, RF24, RN18 |
 | GET | `/plano?data=` (plano ativo + refeições consumidas no dia) · `/planos` | RF18 |
 | PUT | `/refeicoes/:id/consumo` | RF20, RF25 |
 | PUT | `/itens/:id/substituto` | RF19, RN13 |

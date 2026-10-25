@@ -1,7 +1,7 @@
 const { Nutricionista, Paciente } = require('../models');
 const { gerarHash, compararSenha } = require('../utils/senha');
 const { gerarToken } = require('../utils/jwt');
-const { gerarTokenRecuperacao } = require('../utils/aleatorio');
+const { gerarTokenRecuperacao, gerarCodigoRecuperacao } = require('../utils/aleatorio');
 const { enviarEmail } = require('../utils/email');
 const AppError = require('../utils/AppError');
 
@@ -60,10 +60,9 @@ async function loginPaciente({ email, senha }) {
   return { paciente: dadosPublicos, token };
 }
 
-// RF03 / RN09 - Solicitar recuperação de senha (nutricionista OU paciente)
+// RF03 / RN09 - Nutricionista: link de redefinição enviado ao e-mail cadastrado (web)
 async function solicitarRecuperacaoSenha({ email }) {
-  const nutricionista = await Nutricionista.findOne({ where: { email } });
-  const modelo = nutricionista || (await Paciente.findOne({ where: { email } }));
+  const modelo = await Nutricionista.findOne({ where: { email } });
 
   // Por segurança, não revelamos se o e-mail existe ou não na resposta.
   if (!modelo) return;
@@ -84,12 +83,9 @@ async function solicitarRecuperacaoSenha({ email }) {
   });
 }
 
-// RF03 / RN09 - Redefinir senha usando o token recebido por e-mail
+// RF03 / RN09 - Nutricionista redefine a senha usando o token do link
 async function redefinirSenha({ token, novaSenha }) {
-  let modelo = await Nutricionista.scope('comSenha').findOne({ where: { tokenRecuperacao: token } });
-  if (!modelo) {
-    modelo = await Paciente.scope('comSenha').findOne({ where: { tokenRecuperacao: token } });
-  }
+  const modelo = await Nutricionista.scope('comSenha').findOne({ where: { tokenRecuperacao: token } });
 
   if (!modelo || !modelo.tokenExpiraEm || modelo.tokenExpiraEm < new Date()) {
     throw new AppError('Token inválido ou expirado', 400);
@@ -99,6 +95,40 @@ async function redefinirSenha({ token, novaSenha }) {
   modelo.tokenRecuperacao = null;
   modelo.tokenExpiraEm = null;
   await modelo.save();
+}
+
+// RF03 / RN09 - Paciente: código de redefinição enviado ao e-mail cadastrado.
+// O paciente usa o código no próprio app (a web é só do nutricionista).
+async function solicitarRecuperacaoSenhaPaciente({ email }) {
+  const paciente = await Paciente.findOne({ where: { email } });
+  // Resposta sempre genérica para não revelar quais e-mails existem
+  if (!paciente || !paciente.ativo) return;
+
+  const codigo = gerarCodigoRecuperacao();
+  paciente.tokenRecuperacao = codigo;
+  paciente.tokenExpiraEm = new Date(Date.now() + UMA_HORA_MS);
+  await paciente.save();
+
+  await enviarEmail({
+    para: email,
+    assunto: 'Código para redefinir sua senha — Roteiro Nutri',
+    texto:
+      `Olá, ${paciente.nome}!\n\nRecebemos um pedido para redefinir sua senha no app Roteiro Nutri.\n\n` +
+      `Seu código é: ${codigo}\n\nDigite esse código no app (válido por 1 hora) e escolha a nova senha.\n\n` +
+      'Se você não fez esse pedido, ignore este e-mail.',
+  });
+}
+
+async function redefinirSenhaPaciente({ email, codigo, novaSenha }) {
+  const paciente = await Paciente.scope('comSenha').findOne({ where: { email } });
+  const valido =
+    paciente && paciente.ativo && paciente.tokenRecuperacao && paciente.tokenRecuperacao === codigo && paciente.tokenExpiraEm > new Date();
+  if (!valido) throw new AppError('Código inválido ou expirado', 400);
+
+  paciente.senhaHash = await gerarHash(novaSenha);
+  paciente.tokenRecuperacao = null;
+  paciente.tokenExpiraEm = null;
+  await paciente.save();
 }
 
 // Dados do usuário logado (usado pelos front-ends ao abrir o app)
@@ -117,4 +147,6 @@ module.exports = {
   loginPaciente,
   solicitarRecuperacaoSenha,
   redefinirSenha,
+  solicitarRecuperacaoSenhaPaciente,
+  redefinirSenhaPaciente,
 };

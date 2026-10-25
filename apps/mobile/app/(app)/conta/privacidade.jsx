@@ -1,35 +1,15 @@
-import { useState } from 'react'
-import { Alert, Platform, Share, View } from 'react-native'
-import { useMutation } from '@tanstack/react-query'
+import { Alert, Share, View } from 'react-native'
+import { useRouter } from 'expo-router'
 import { Shield, KeyRound, Share2, Trash2 } from 'lucide-react-native'
 import { Botao, Cabecalho, Card, Tela, Texto, estilos } from '../../../components/ui'
-import { api } from '../../../lib/api'
 import { usePerfil, useEvolucao } from '../../../lib/consultas'
 import { cores } from '../../../lib/tema'
 
-// Privacidade (LGPD) e pedido de nova senha (RN09: o nutricionista aprova)
+// Privacidade (LGPD) e redefinição de senha pelo e-mail cadastrado (RF03 / RN09)
 export default function Privacidade() {
+  const router = useRouter()
   const perfil = usePerfil()
   const evolucao = useEvolucao()
-  const [mensagem, setMensagem] = useState(null)
-
-  const pedir = useMutation({
-    mutationFn: () => api('/app/senha/solicitar', { method: 'POST' }),
-    onSuccess: (r) => setMensagem({ ok: true, texto: r.mensagem }),
-    onError: (e) => setMensagem({ ok: false, texto: e.message }),
-  })
-
-  const pedirNovaSenha = () => {
-    if (Platform.OS === 'web') return pedir.mutate()
-    Alert.alert(
-      'Pedir nova senha',
-      'Seu nutricionista vai receber o pedido. Quando ele aprovar, uma nova senha será enviada para o seu e-mail.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Enviar pedido', onPress: () => pedir.mutate() },
-      ]
-    )
-  }
 
   // LGPD: o paciente pode obter uma cópia dos próprios dados
   const compartilharDados = async () => {
@@ -59,10 +39,13 @@ export default function Privacidade() {
           <Texto estilo="forte">Senha</Texto>
         </View>
         <Texto estilo="legenda">
-          Para trocar a senha, faça o pedido ao seu nutricionista. Depois que ele aprovar, a nova senha chega no seu e-mail.
+          Para trocar a senha, enviamos um código para o seu e-mail cadastrado ({perfil.data?.email}). Com o código, você escolhe a nova
+          senha aqui no app.
         </Texto>
-        {mensagem && <Texto style={{ color: mensagem.ok ? cores.primaria : cores.perigo, fontSize: 13 }}>{mensagem.texto}</Texto>}
-        <Botao titulo="Pedir nova senha ao nutricionista" onPress={pedirNovaSenha} carregando={pedir.isPending} />
+        <Botao
+          titulo="Redefinir senha por e-mail"
+          onPress={() => router.push({ pathname: '/esqueci-senha', params: { email: perfil.data?.email ?? '' } })}
+        />
       </Card>
 
       <Card style={{ gap: 10 }}>
