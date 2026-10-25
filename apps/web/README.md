@@ -11,6 +11,7 @@ pnpm dev:web              # a partir da raiz do monorepo
 
 | Tela | O que tem |
 |------|-----------|
+| Área do paciente (`/paciente`) | Tela ilustrativa: "Sou paciente" leva a um anúncio para baixar o app (botões das lojas e QR code são de demonstração) |
 | Login, cadastro e recuperação de senha | Senhas com o botão de "olhinho" para mostrar/esconder; recuperação por link no e-mail |
 | Dashboard | Pacientes ativos, consultas de hoje, planos ativos e taxa de adesão dos últimos 30 dias |
 | Pacientes | Cadastro, anamnese, avaliação, evolução, consultas e planos de cada paciente |

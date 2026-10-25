@@ -2,6 +2,7 @@ import { Link, Route, Routes } from 'react-router-dom'
 import { NutriShell } from './components/NutriShell'
 import { Button } from './components/ui'
 import Landing from './pages/Landing'
+import BaixarApp from './pages/BaixarApp'
 import Login from './pages/Login'
 import Cadastro from './pages/Cadastro'
 import EsqueciSenha from './pages/EsqueciSenha'
@@ -26,6 +27,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/paciente" element={<BaixarApp />} />
       <Route path="/login" element={<Login />} />
       <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/esqueci-senha" element={<EsqueciSenha />} />

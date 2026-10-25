@@ -9,9 +9,9 @@ export default function Landing() {
       <header className="landing-largura landing-topo">
         <Logo altura={40} />
         <nav className="linha">
-          <a href="#paciente" className="so-desktop texto-medio texto-suave">
+          <Link to="/paciente" className="so-desktop texto-medio texto-suave">
             Sou paciente
-          </a>
+          </Link>
           <Link to="/login">
             <Button variant="ghost">Entrar</Button>
           </Link>
@@ -92,6 +92,11 @@ export default function Landing() {
               nutricionista enviou para você.
             </p>
           </div>
+          <Link to="/paciente">
+            <Button variant="outline">
+              Baixar o app <ArrowRight />
+            </Button>
+          </Link>
         </div>
       </section>
 
