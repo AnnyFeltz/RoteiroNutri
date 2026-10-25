@@ -41,6 +41,7 @@ A divisão de acesso é garantida pela API: rotas do painel só aceitam token de
 | jsPDF + jspdf-autotable | Exportação da ficha do paciente em PDF |
 | Sonner | Avisos (toasts) na web |
 | expo-secure-store | Guarda o login do paciente com segurança no celular |
+| expo-image-picker + expo-image-manipulator | Foto de perfil do paciente (escolhida da galeria e reduzida antes de enviar) |
 | Turborepo + pnpm | Monorepo (roda web, mobile e API juntos) |
 
 ## Como rodar

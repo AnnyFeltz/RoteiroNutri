@@ -7,9 +7,20 @@ cp .env.example .env      # VITE_API_URL=http://localhost:3001/api
 pnpm dev:web              # a partir da raiz do monorepo
 ```
 
-Telas: dashboard, pacientes (cadastro, anamnese, avaliação, evolução, consultas), editor de planos com
-calculadora (Mifflin-St Jeor / Harris-Benedict) e substitutos, painel de planos, agenda, tabela TACO,
-evolução, relatórios/ficha em PDF, notificações e configurações.
+## Telas
+
+| Tela | O que tem |
+|------|-----------|
+| Login, cadastro e recuperação de senha | Senhas com o botão de "olhinho" para mostrar/esconder; recuperação por link no e-mail |
+| Dashboard | Pacientes ativos, consultas de hoje, planos ativos e taxa de adesão dos últimos 30 dias |
+| Pacientes | Cadastro, anamnese, avaliação, evolução, consultas e planos de cada paciente |
+| Editor de plano | Calculadora (Mifflin-St Jeor / Harris-Benedict), refeições, alimentos da TACO e substitutos; cada save gera uma nova versão |
+| Planos alimentares | Painel com o plano ativo de cada paciente |
+| Agenda | Calendário do mês e **próximas consultas agrupadas por data** (próximos 5 dias com consulta); clicar no dia abre as consultas dele |
+| Alimentos (TACO) | Busca na tabela TACO (597 alimentos) |
+| Evolução e relatórios | Gráficos de evolução e ficha do paciente em PDF |
+| Notificações | Avisos em tempo real (Socket.io): paciente alterou o perfil, pediu nova senha, registrou peso |
+| Configurações | Dados do nutricionista, **foto de perfil**, troca de senha e preferências |
 
 ## Estilo (CSS)
 
