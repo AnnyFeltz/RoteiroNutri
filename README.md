@@ -63,7 +63,8 @@ cp apps/web/.env.example apps/web/.env
 pnpm dev:web           # http://localhost:5173
 
 # 3. app do paciente (outro terminal)
-pnpm dev:mobile        # mostra o QR code: abra no Expo Go (mesma rede Wi-Fi)
+cd apps\mobile
+npx expo start        # mostra o QR code: abra no Expo Go (mesma rede Wi-Fi)
 ```
 
 Acessos de demonstração (senha `demo1234`): nutricionista `caroline@roteironutri.com` no web;
@@ -88,3 +89,9 @@ Detalhes de cada parte (endpoints, modelo de dados, telas) nos READMEs de cada a
 
 A tabela TACO (NEPA/UNICAMP, 4ª edição) vem de [raulfdm/taco-api](https://github.com/raulfdm/taco-api) (MIT)
 e é carregada no banco pelo seed `20260920200000-alimentos-taco.js`.
+
+## Licença
+
+© 2026 Ana Caroline M. Feltz. Todos os direitos reservados.
+Este projeto foi desenvolvido como TCC no IFPR. É proibido copiar, modificar ou usar
+o código sem autorização da autora. Veja o arquivo [LICENSE](LICENSE).
