@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import {
-  LayoutDashboard, Users, ClipboardList, Apple, Database, TrendingUp, FileText, Settings, LogOut, Bell, Search, Menu, X,
+  LayoutDashboard, Users, ClipboardList, Apple, Database, TrendingUp, FileText, Settings, LogOut, Search, Menu, X,
 } from 'lucide-react'
 import { Logo } from './Logo'
 import { Avatar, Carregando, Input } from './ui'
 import { useAuth } from '../lib/auth'
-import { api } from '../lib/api'
-import { useNotificacoesTempoReal } from '../lib/socket'
+import { useAtualizacoesTempoReal } from '../lib/socket'
 import { cn } from '../lib/hooks'
 
 const NAV = [
@@ -29,22 +27,13 @@ export function NutriShell() {
   const [aberto, setAberto] = useState(false)
   const [busca, setBusca] = useState('')
 
-  useNotificacoesTempoReal(token, nutricionista?.preferencias?.avisosTempoReal !== false)
-
-  const { data: contagem } = useQuery({
-    queryKey: ['notificacoes', 'contagem'],
-    queryFn: () => api('/notificacoes/contagem'),
-    enabled: !!nutricionista,
-    refetchInterval: 60_000,
-  })
+  useAtualizacoesTempoReal(token)
 
   // fecha o menu lateral (mobile) ao trocar de página
   useEffect(() => setAberto(false), [pathname])
 
   if (!token) return <Navigate to="/login" replace state={{ de: pathname }} />
   if (carregando || !nutricionista) return <Carregando />
-
-  const naoLidas = contagem?.total || 0
 
   const buscar = (e) => {
     e.preventDefault()
@@ -116,10 +105,6 @@ export function NutriShell() {
             <Search />
             <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar paciente..." />
           </form>
-          <Link to="/nutri/notificacoes" className="sino" aria-label="Notificações">
-            <Bell />
-            {naoLidas > 0 && <span className="sino-contador">{naoLidas}</span>}
-          </Link>
         </header>
         <div className="shell-conteudo">
           <Outlet />

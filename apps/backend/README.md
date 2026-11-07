@@ -13,7 +13,7 @@ src/
   services/      # regra de negócio
   middlewares/   # autenticação JWT, tratamento de erros
   utils/         # helpers (jwt, hash de senha, etc)
-  sockets/       # eventos de Socket.io (notificações em tempo real)
+  sockets/       # eventos de Socket.io (atualização das telas em tempo real)
   server.js      # entry point
 ```
 
@@ -60,8 +60,7 @@ Segue o modelo relacional do TCC:
 nutricionistas 1─N pacientes 1─N planos_alimentares 1─N refeicoes 1─N refeicao_alimentos 1─N substitutos
                       │                                    │                │                     │
                       ├─N consultas                        └─N adesoes      └──── alimentos (TACO) ┘
-                      ├─N evolucao_peso
-                      └─N alteracoes_perfil   (notificações para o nutricionista)
+                      └─N evolucao_peso
 ```
 
 Regras garantidas pelo banco: e-mail único, **um único plano ativo por paciente** (índice único parcial — RN07)
@@ -97,7 +96,6 @@ Todas as rotas validam o corpo com **Zod** (`packages/shared`) e retornam erros 
 | POST/DELETE | `/pacientes/:id/evolucao` | RF21 |
 | GET | `/planos` (painel global) · `/planos/:id` | RF14 |
 | GET/POST/PUT/DELETE | `/consultas` · GET `/consultas/horarios-ocupados?data=` | RF22, RN16, RN17 |
-| GET | `/notificacoes` · `/notificacoes/contagem` | — |
 
 ### Mobile — somente paciente (`/api/app`)
 
@@ -118,7 +116,7 @@ A busca ignora acentos ("feijao" encontra "Feijão").
 ## Tempo real (Socket.io)
 
 O cliente conecta enviando o JWT em `auth.token` e entra na sala do próprio usuário. Eventos:
-`notificacao` e `paciente:peso` (para o nutricionista), `plano:atualizado`, `consulta:atualizada` e
+`paciente:atualizado` (para o nutricionista recarregar a tela), `plano:atualizado`, `consulta:atualizada` e
 `conta:desativada` (para o paciente).
 
 ## E-mail

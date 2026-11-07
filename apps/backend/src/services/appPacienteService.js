@@ -2,14 +2,14 @@
 const { Op } = require('sequelize');
 const {
   sequelize, Nutricionista, Paciente, PlanoAlimentar, Refeicao, RefeicaoAlimento, Substituto,
-  Adesao, Consulta, EvolucaoPeso, AlteracaoPerfil,
+  Adesao, Consulta, EvolucaoPeso,
 } = require('../models');
 const { hoje, somarDias } = require('../utils/datas');
 const { buscarPacienteLogado } = require('../utils/acesso');
 const { includePlanoCompleto, orderPlanoCompleto } = require('./planoIncludes');
 const { adesaoDiaria, mediaAdesao, sequenciaDias } = require('./adesaoService');
 const { registrarPesagem, garantirEmailLivre } = require('./pacienteService');
-const { notificar } = require('../sockets');
+const { emitir } = require('../sockets');
 const AppError = require('../utils/AppError');
 
 const ATRIBUTOS_NUTRI = ['id', 'nome', 'crn', 'email', 'telefone', 'foto'];
@@ -39,31 +39,14 @@ async function perfil(pacienteId) {
   return { ...paciente.toJSON(), proximaConsulta, ultimaConsulta, planoAtivo };
 }
 
-// RF24 / RN18 - o paciente edita apenas os dados pessoais; o nutricionista é notificado
+// RF24 / RN18 - o paciente edita apenas os dados pessoais
 async function atualizarPerfil(pacienteId, dados) {
   const paciente = await buscarPacienteLogado(pacienteId);
   if (dados.email !== paciente.email) await garantirEmailLivre(dados.email, pacienteId);
 
-  const alteracoes = ['nome', 'email', 'telefone']
-    .filter((campo) => dados[campo] !== undefined && (dados[campo] || '') !== (paciente[campo] || ''))
-    .map((campo) => ({
-      pacienteId,
-      nutricionistaId: paciente.nutricionistaId,
-      campo,
-      valorAntigo: paciente[campo] || '',
-      valorNovo: dados[campo] || '',
-    }));
-
-  if (alteracoes.length) {
-    await sequelize.transaction(async (transaction) => {
-      await paciente.update(
-        { nome: dados.nome, email: dados.email, telefone: dados.telefone ?? paciente.telefone },
-        { transaction }
-      );
-      await AlteracaoPerfil.bulkCreate(alteracoes, { transaction });
-    });
-    notificar('nutricionista', paciente.nutricionistaId, 'notificacao', { tipo: 'alteracao-perfil', pacienteId });
-  }
+  await paciente.update({ nome: dados.nome, email: dados.email, telefone: dados.telefone ?? paciente.telefone });
+  // só atualiza as telas abertas do nutricionista (sem aviso)
+  emitir('nutricionista', paciente.nutricionistaId, 'paciente:atualizado', { pacienteId });
   return perfil(pacienteId);
 }
 
@@ -216,39 +199,18 @@ async function evolucao(pacienteId) {
   };
 }
 
-// O paciente atualiza o próprio peso e/ou altura; o nutricionista é notificado
+// RF26 / RN21 - o paciente atualiza o próprio peso e/ou altura
 async function atualizarMedidas(pacienteId, { data, pesoKg, alturaCm }) {
   const paciente = await buscarPacienteLogado(pacienteId);
   const dia = data || hoje();
   if (dia > hoje()) throw new AppError('Não é possível registrar medidas em uma data futura', 422);
 
-  const alteracoes = [];
-  if (pesoKg !== undefined && pesoKg !== paciente.pesoAtualKg) {
-    alteracoes.push({ campo: 'peso', valorAntigo: paciente.pesoAtualKg ?? '', valorNovo: pesoKg });
-  }
-  if (alturaCm !== undefined && alturaCm !== paciente.alturaCm) {
-    alteracoes.push({ campo: 'altura', valorAntigo: paciente.alturaCm ?? '', valorNovo: alturaCm });
-  }
-
   await sequelize.transaction(async (t) => {
     // a pesagem entra no histórico de evolução (medidas corporais continuam com o nutricionista)
     if (pesoKg !== undefined) await registrarPesagem(pacienteId, { data: dia, pesoKg }, 'paciente', t);
     if (alturaCm !== undefined) await paciente.update({ alturaCm }, { transaction: t });
-    if (alteracoes.length) {
-      await AlteracaoPerfil.bulkCreate(
-        alteracoes.map((a) => ({
-          ...a,
-          valorAntigo: String(a.valorAntigo),
-          valorNovo: String(a.valorNovo),
-          pacienteId,
-          nutricionistaId: paciente.nutricionistaId,
-        })),
-        { transaction: t }
-      );
-    }
   });
-  notificar('nutricionista', paciente.nutricionistaId, 'paciente:peso', { pacienteId });
-  if (alteracoes.length) notificar('nutricionista', paciente.nutricionistaId, 'notificacao', { tipo: 'alteracao-perfil', pacienteId });
+  emitir('nutricionista', paciente.nutricionistaId, 'paciente:atualizado', { pacienteId });
   return evolucao(pacienteId);
 }
 

@@ -235,40 +235,6 @@
   }
 }
 
-.sino {
-  position: relative;
-  padding: 8px;
-  margin-left: auto;
-  border-radius: 50%;
-  color: oklch(0.24 0.03 145 / 0.7);
-}
-
-.sino:hover {
-  background: var(--suave);
-}
-
-.sino svg {
-  width: 20px;
-  height: 20px;
-}
-
-.sino-contador {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--terracota);
-  color: var(--terracota-texto);
-  font-size: 10px;
-  font-weight: 600;
-}
-
 .shell-conteudo {
   padding: 16px;
 }

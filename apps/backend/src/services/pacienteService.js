@@ -8,7 +8,7 @@ const { enviarEmail } = require('../utils/email');
 const { hoje } = require('../utils/datas');
 const { buscarPacienteDoNutricionista } = require('../utils/acesso');
 const { includePlanoCompleto, orderPlanoCompleto } = require('./planoIncludes');
-const { notificar } = require('../sockets');
+const { emitir } = require('../sockets');
 const AppError = require('../utils/AppError');
 
 /** E-mail é a credencial de login: não pode repetir entre pacientes nem nutricionistas. */
@@ -176,7 +176,7 @@ async function desativar(nutricionistaId, pacienteId) {
       { transaction }
     );
   });
-  notificar('paciente', pacienteId, 'conta:desativada');
+  emitir('paciente', pacienteId, 'conta:desativada');
   return paciente;
 }
 

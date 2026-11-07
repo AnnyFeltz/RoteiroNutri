@@ -28,7 +28,6 @@ const MODELS = [
   'Adesao',
   'Consulta',
   'EvolucaoPeso',
-  'AlteracaoPerfil',
 ];
 for (const nome of MODELS) {
   db[nome] = require(`./${nome}`)(sequelize, Sequelize.DataTypes);
@@ -36,7 +35,7 @@ for (const nome of MODELS) {
 
 const {
   Nutricionista, Paciente, Alimento, PlanoAlimentar, Refeicao, RefeicaoAlimento,
-  Substituto, Adesao, Consulta, EvolucaoPeso, AlteracaoPerfil,
+  Substituto, Adesao, Consulta, EvolucaoPeso,
 } = db;
 
 // Associações (seguem o modelo relacional do TCC)
@@ -67,7 +66,5 @@ Nutricionista.hasMany(Consulta, { foreignKey: 'nutricionistaId', as: 'consultas'
 
 Paciente.hasMany(EvolucaoPeso, { foreignKey: 'pacienteId', as: 'evolucao' });
 EvolucaoPeso.belongsTo(Paciente, { foreignKey: 'pacienteId', as: 'paciente' });
-
-AlteracaoPerfil.belongsTo(Paciente, { foreignKey: 'pacienteId', as: 'paciente' });
 
 module.exports = db;

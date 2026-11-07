@@ -7,7 +7,7 @@ const sala = (tipo, id) => `${tipo}:${id}`;
 /**
  * Configura os eventos de socket. O cliente se autentica enviando o JWT
  * (handshake.auth.token) e entra automaticamente na sala do próprio usuário,
- * permitindo notificar um nutricionista ou paciente específico em tempo real
+ * permitindo enviar eventos a um nutricionista ou paciente específico em tempo real
  * (ex: paciente alterou o perfil, novo plano alimentar publicado).
  */
 function registrarSocket(io) {
@@ -30,8 +30,8 @@ function registrarSocket(io) {
 }
 
 /** Envia um evento para um usuário (tipo: 'nutricionista' | 'paciente'). */
-function notificar(tipo, usuarioId, evento, dados = {}) {
+function emitir(tipo, usuarioId, evento, dados = {}) {
   if (ioGlobal) ioGlobal.to(sala(tipo, usuarioId)).emit(evento, dados);
 }
 
-module.exports = { registrarSocket, notificar };
+module.exports = { registrarSocket, emitir };

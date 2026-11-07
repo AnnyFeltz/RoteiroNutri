@@ -2,7 +2,7 @@ const { Op, UniqueConstraintError } = require('sequelize');
 const { Consulta, Paciente } = require('../models');
 const { buscarPacienteDoNutricionista } = require('../utils/acesso');
 const { hhmm } = require('../utils/datas');
-const { notificar } = require('../sockets');
+const { emitir } = require('../sockets');
 const AppError = require('../utils/AppError');
 
 const formatarBR = (data) => data.split('-').reverse().join('/');
@@ -42,7 +42,7 @@ async function criar(nutricionistaId, { pacienteId, ...dados }) {
   await garantirHorarioLivre(nutricionistaId, dados.data, dados.horario);
   try {
     const consulta = await Consulta.create({ ...dados, pacienteId, nutricionistaId });
-    notificar('paciente', pacienteId, 'consulta:atualizada', { consultaId: consulta.id });
+    emitir('paciente', pacienteId, 'consulta:atualizada', { consultaId: consulta.id });
     return consulta;
   } catch (err) {
     // corrida entre duas requisições: o índice único do banco garante a RN17
@@ -67,14 +67,14 @@ async function atualizar(nutricionistaId, consultaId, dados) {
     await garantirHorarioLivre(nutricionistaId, data, horario, consultaId);
   }
   await consulta.update(dados);
-  notificar('paciente', consulta.pacienteId, 'consulta:atualizada', { consultaId });
+  emitir('paciente', consulta.pacienteId, 'consulta:atualizada', { consultaId });
   return consulta;
 }
 
 async function remover(nutricionistaId, consultaId) {
   const consulta = await buscar(nutricionistaId, consultaId);
   await consulta.destroy();
-  notificar('paciente', consulta.pacienteId, 'consulta:atualizada', { consultaId });
+  emitir('paciente', consulta.pacienteId, 'consulta:atualizada', { consultaId });
 }
 
 module.exports = { listar, horariosOcupados, criar, atualizar, remover };

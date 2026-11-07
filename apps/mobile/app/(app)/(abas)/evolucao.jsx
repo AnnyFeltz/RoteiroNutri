@@ -32,7 +32,7 @@ export default function Evolucao() {
     onError: (e) => setErro(e.message),
   })
 
-  // O paciente atualiza peso e/ou altura (o nutricionista é notificado)
+  // RF26 / RN21 - O paciente atualiza o próprio peso e/ou altura
   const abrirAtualizacao = () => {
     const p = evolucao.data?.paciente
     setMedidas({ peso: p?.pesoAtualKg != null ? String(p.pesoAtualKg) : '', altura: p?.alturaCm != null ? String(p.alturaCm) : '' })
