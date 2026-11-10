@@ -57,6 +57,7 @@ cp apps/backend/.env.example apps/backend/.env   # ajuste DB_* e JWT_SECRET
 cd apps/backend && npm run db:create && cd ../..
 pnpm db:setup          # migrations + tabela TACO (597 alimentos)
 pnpm db:seed:demo      # opcional: dados de demonstração
+pnpm db:seed:adesao    # opcional: adesão dos últimos 60 dias para os gráficos
 pnpm dev:backend       # http://localhost:3001/api
 
 # 2. web do nutricionista (outro terminal)

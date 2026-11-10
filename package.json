@@ -8,7 +8,8 @@
     "dev:backend": "turbo dev --filter=backend",
     "build": "turbo build",
     "db:setup": "pnpm --filter backend db:setup",
-    "db:seed:demo": "pnpm --filter backend db:seed:demo"
+    "db:seed:demo": "pnpm --filter backend db:seed:demo",
+    "db:seed:adesao": "pnpm --filter backend db:seed:adesao"
   },
   "devDependencies": {
     "turbo": "latest"
