@@ -36,10 +36,6 @@ async function reativar(req, res) {
   res.json(await pacienteService.reativar(nutri(req), req.params.id));
 }
 
-async function gerarNovaSenha(req, res) {
-  res.json(await pacienteService.gerarNovaSenha(nutri(req), req.params.id));
-}
-
 async function listarPlanos(req, res) {
   res.json(await planoService.listarDoPaciente(nutri(req), req.params.id));
 }
@@ -66,7 +62,6 @@ module.exports = {
   atualizar,
   desativar,
   reativar,
-  gerarNovaSenha,
   listarPlanos,
   criarPlano,
   registrarEvolucao,

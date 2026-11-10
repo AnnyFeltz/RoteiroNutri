@@ -11,7 +11,7 @@ import { usePerfil } from '../../../lib/consultas'
 import { num, objetivoLabel } from '../../../lib/formato'
 import { cores } from '../../../lib/tema'
 
-// RF24 / RN18 - O paciente edita apenas os dados pessoais; o nutricionista é notificado
+// RF24 / RN18 - O paciente edita apenas os dados pessoais
 export default function EditarPerfil() {
   const router = useRouter()
   const queryClient = useQueryClient()

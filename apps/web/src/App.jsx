@@ -20,7 +20,6 @@ import Taco from './pages/Taco'
 import Evolucao from './pages/Evolucao'
 import Relatorios from './pages/Relatorios'
 import Configuracoes from './pages/Configuracoes'
-import Notificacoes from './pages/Notificacoes'
 
 // A versão web é exclusiva do NUTRICIONISTA. O paciente usa o app mobile (apps/mobile).
 export default function App() {
@@ -48,7 +47,6 @@ export default function App() {
         <Route path="evolucao" element={<Evolucao />} />
         <Route path="relatorios" element={<Relatorios />} />
         <Route path="configuracoes" element={<Configuracoes />} />
-        <Route path="notificacoes" element={<Notificacoes />} />
       </Route>
 
       <Route path="*" element={<NaoEncontrado />} />

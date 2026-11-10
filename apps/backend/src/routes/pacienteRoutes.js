@@ -13,7 +13,6 @@ router.put('/:id', asyncHandler(c.atualizar));
 // RF06 / RN04
 router.patch('/:id/desativar', asyncHandler(c.desativar));
 router.patch('/:id/reativar', asyncHandler(c.reativar));
-router.post('/:id/nova-senha', asyncHandler(c.gerarNovaSenha));
 // RF10 / RF11 - cada POST gera uma nova versão do plano
 router.get('/:id/planos', asyncHandler(c.listarPlanos));
 router.post('/:id/planos', asyncHandler(c.criarPlano));

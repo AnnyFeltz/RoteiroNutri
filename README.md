@@ -7,7 +7,7 @@ Desenvolvimento de Sistemas (IFPR Paranaguá).
 |-----|-----------|------------|
 | [`apps/web`](apps/web) | **Nutricionista** (painel web) | React + CSS |
 | [`apps/mobile`](apps/mobile) | **Paciente** (app no celular) | React Native (Expo) |
-| [`apps/backend`](apps/backend) | API REST + notificações em tempo real | Node.js + PostgreSQL |
+| [`apps/backend`](apps/backend) | API REST + atualização em tempo real | Node.js + PostgreSQL |
 | [`packages/shared`](packages/shared) | Validações (Zod) e cálculos nutricionais usados pelos três | JavaScript |
 
 A divisão de acesso é garantida pela API: rotas do painel só aceitam token de nutricionista e as rotas
@@ -24,7 +24,7 @@ A divisão de acesso é garantida pela API: rotas do painel só aceitam token de
 | **PostgreSQL** | Banco de dados (administrado pelo **DBeaver**) |
 | **Lucide** | Ícones (`lucide-react` na web e `lucide-react-native` no app) |
 | **Zod** | Validação: os mesmos schemas validam os formulários da web, do app e as requisições na API |
-| **Socket.io** | Notificações em tempo real (paciente alterou o perfil, pediu nova senha, novo plano publicado...) |
+| **Socket.io** | Atualização das telas em tempo real (paciente atualizou peso ou perfil, novo plano publicado...) |
 | **CSS** | Estilo da web em CSS puro (`apps/web/src/estilos`); no app, `StyleSheet` do React Native |
 
 ### Bibliotecas de apoio
@@ -38,9 +38,10 @@ A divisão de acesso é garantida pela API: rotas do painel só aceitam token de
 | React Router / Expo Router | Navegação entre telas (web / app) |
 | TanStack React Query | Cache e atualização dos dados vindos da API |
 | Recharts / react-native-svg | Gráficos (web / app) |
-| jsPDF + jspdf-autotable | Exportação da ficha do paciente em PDF |
+| jsPDF + jspdf-autotable | Exportação da ficha do paciente em PDF (web do nutricionista) |
 | Sonner | Avisos (toasts) na web |
 | expo-secure-store | Guarda o login do paciente com segurança no celular |
+| expo-print + expo-sharing | Ficha do paciente em PDF gerada no app e compartilhada |
 | expo-image-picker + expo-image-manipulator | Foto de perfil do paciente (escolhida da galeria e reduzida antes de enviar) |
 | Turborepo + pnpm | Monorepo (roda web, mobile e API juntos) |
 

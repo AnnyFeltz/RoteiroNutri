@@ -4,7 +4,7 @@ const {
   fotoSchema,
   consumoSchema,
   substituicaoSchema,
-  evolucaoSchema,
+  medidasPacienteSchema,
   dataSchema,
 } = require('@RoteiroNutri/shared');
 const appPacienteService = require('../services/appPacienteService');
@@ -18,16 +18,6 @@ async function perfil(req, res) {
 async function atualizarPerfil(req, res) {
   const dados = atualizarPerfilPacienteSchema.parse(req.body);
   res.json(await appPacienteService.atualizarPerfil(paciente(req), dados));
-}
-
-async function pedirNovaSenha(req, res) {
-  const { jaPendente } = await appPacienteService.pedirNovaSenha(paciente(req));
-  res.json({
-    jaPendente,
-    mensagem: jaPendente
-      ? 'Você já tem um pedido aguardando o seu nutricionista.'
-      : 'Pedido enviado. Quando seu nutricionista aprovar, a nova senha chegará no seu e-mail.',
-  });
 }
 
 async function atualizarFoto(req, res) {
@@ -67,15 +57,14 @@ async function evolucao(req, res) {
   res.json(await appPacienteService.evolucao(paciente(req)));
 }
 
-async function registrarPeso(req, res) {
-  const dados = evolucaoSchema.parse(req.body);
-  res.status(201).json(await appPacienteService.registrarPeso(paciente(req), dados));
+async function atualizarMedidas(req, res) {
+  const dados = medidasPacienteSchema.parse(req.body);
+  res.status(201).json(await appPacienteService.atualizarMedidas(paciente(req), dados));
 }
 
 module.exports = {
   perfil,
   atualizarPerfil,
-  pedirNovaSenha,
   atualizarFoto,
   atualizarPreferencias,
   planoDoDia,
@@ -84,5 +73,5 @@ module.exports = {
   escolherSubstituto,
   consultas,
   evolucao,
-  registrarPeso,
+  atualizarMedidas,
 };

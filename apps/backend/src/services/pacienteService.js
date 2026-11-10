@@ -8,7 +8,7 @@ const { enviarEmail } = require('../utils/email');
 const { hoje } = require('../utils/datas');
 const { buscarPacienteDoNutricionista } = require('../utils/acesso');
 const { includePlanoCompleto, orderPlanoCompleto } = require('./planoIncludes');
-const { notificar } = require('../sockets');
+const { emitir } = require('../sockets');
 const AppError = require('../utils/AppError');
 
 /** E-mail é a credencial de login: não pode repetir entre pacientes nem nutricionistas. */
@@ -176,7 +176,7 @@ async function desativar(nutricionistaId, pacienteId) {
       { transaction }
     );
   });
-  notificar('paciente', pacienteId, 'conta:desativada');
+  emitir('paciente', pacienteId, 'conta:desativada');
   return paciente;
 }
 
@@ -191,19 +191,6 @@ async function reativar(nutricionistaId, pacienteId) {
     await paciente.update({ ativo: true }, { transaction });
   });
   return paciente;
-}
-
-// Nutricionista gera uma nova senha para o paciente (ex: paciente perdeu o acesso)
-async function gerarNovaSenha(nutricionistaId, pacienteId) {
-  const paciente = await buscarPacienteDoNutricionista(nutricionistaId, pacienteId);
-  const novaSenha = gerarSenhaProvisoria();
-  await Paciente.update({ senhaHash: await gerarHash(novaSenha) }, { where: { id: paciente.id } });
-  const emailEnviado = await enviarEmail({
-    para: paciente.email,
-    assunto: 'Nova senha do app Roteiro Nutri',
-    texto: `Olá, ${paciente.nome}!\n\nSua nova senha de acesso ao app é: ${novaSenha}\n`,
-  });
-  return { email: paciente.email, novaSenha, emailEnviado };
 }
 
 /**
@@ -262,7 +249,6 @@ module.exports = {
   atualizar,
   desativar,
   reativar,
-  gerarNovaSenha,
   registrarPesagem,
   registrarEvolucao,
   removerEvolucao,

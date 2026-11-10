@@ -21,6 +21,16 @@ function gerarTokenRecuperacao() {
   return crypto.randomBytes(32).toString('hex');
 }
 
+// Código de recuperação do paciente: 8 caracteres maiúsculos/dígitos, sem ambíguos
+const CARACTERES_CODIGO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** Código enviado por e-mail para o paciente redefinir a senha no app (RF03/RN09). */
+function gerarCodigoRecuperacao(tamanho = 8) {
+  let codigo = '';
+  for (let i = 0; i < tamanho; i++) codigo += CARACTERES_CODIGO[crypto.randomInt(CARACTERES_CODIGO.length)];
+  return codigo;
+}
+
 const CORES_AVATAR = [
   'oklch(0.55 0.13 45)',
   'oklch(0.52 0.13 142)',
@@ -34,4 +44,4 @@ function corAvatarAleatoria() {
   return CORES_AVATAR[crypto.randomInt(CORES_AVATAR.length)];
 }
 
-module.exports = { gerarSenhaProvisoria, gerarTokenRecuperacao, corAvatarAleatoria };
+module.exports = { gerarSenhaProvisoria, gerarTokenRecuperacao, gerarCodigoRecuperacao, corAvatarAleatoria };

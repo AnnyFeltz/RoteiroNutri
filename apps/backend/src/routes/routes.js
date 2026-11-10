@@ -6,7 +6,6 @@ const pacienteRoutes = require('./pacienteRoutes');
 const planoRoutes = require('./planoRoutes');
 const consultaRoutes = require('./consultaRoutes');
 const alimentoRoutes = require('./alimentoRoutes');
-const notificacaoRoutes = require('./notificacaoRoutes');
 const appPacienteRoutes = require('./appPacienteRoutes');
 
 const router = express.Router();
@@ -23,7 +22,6 @@ router.use('/nutricionista', somenteNutricionista, nutricionistaRoutes);
 router.use('/pacientes', somenteNutricionista, pacienteRoutes);
 router.use('/planos', somenteNutricionista, planoRoutes);
 router.use('/consultas', somenteNutricionista, consultaRoutes);
-router.use('/notificacoes', somenteNutricionista, notificacaoRoutes);
 
 // TACO — consulta liberada para qualquer usuário logado
 router.use('/alimentos', autenticar, alimentoRoutes);

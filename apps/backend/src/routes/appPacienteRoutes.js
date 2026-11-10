@@ -8,8 +8,6 @@ const router = express.Router();
 // RF17 / RF24
 router.get('/perfil', asyncHandler(c.perfil));
 router.put('/perfil', asyncHandler(c.atualizarPerfil));
-// RN09 - a troca de senha passa pela aprovação do nutricionista
-router.post('/senha/solicitar', asyncHandler(c.pedirNovaSenha));
 router.put('/foto', asyncHandler(c.atualizarFoto));
 router.put('/preferencias', asyncHandler(c.atualizarPreferencias));
 // RF18
@@ -23,6 +21,6 @@ router.put('/itens/:itemId/substituto', asyncHandler(c.escolherSubstituto));
 router.get('/consultas', asyncHandler(c.consultas));
 // RF21
 router.get('/evolucao', asyncHandler(c.evolucao));
-router.post('/evolucao', asyncHandler(c.registrarPeso));
+router.post('/evolucao', asyncHandler(c.atualizarMedidas)); // peso e/ou altura
 
 module.exports = router;

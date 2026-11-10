@@ -4,7 +4,7 @@ const {
 const { totaisPlano } = require('@RoteiroNutri/shared');
 const { buscarPacienteDoNutricionista } = require('../utils/acesso');
 const { includePlanoCompleto, orderPlanoCompleto } = require('./planoIncludes');
-const { notificar } = require('../sockets');
+const { emitir } = require('../sockets');
 const AppError = require('../utils/AppError');
 
 /**
@@ -67,7 +67,7 @@ async function criarVersao(nutricionistaId, pacienteId, dados) {
     return novo;
   });
 
-  notificar('paciente', pacienteId, 'plano:atualizado', { planoId: plano.id });
+  emitir('paciente', pacienteId, 'plano:atualizado', { planoId: plano.id });
   return detalhar(nutricionistaId, plano.id);
 }
 

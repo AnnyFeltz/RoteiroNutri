@@ -2,14 +2,14 @@
 const { Op } = require('sequelize');
 const {
   sequelize, Nutricionista, Paciente, PlanoAlimentar, Refeicao, RefeicaoAlimento, Substituto,
-  Adesao, Consulta, EvolucaoPeso, AlteracaoPerfil, SolicitacaoSenha,
+  Adesao, Consulta, EvolucaoPeso,
 } = require('../models');
 const { hoje, somarDias } = require('../utils/datas');
 const { buscarPacienteLogado } = require('../utils/acesso');
 const { includePlanoCompleto, orderPlanoCompleto } = require('./planoIncludes');
 const { adesaoDiaria, mediaAdesao, sequenciaDias } = require('./adesaoService');
 const { registrarPesagem, garantirEmailLivre } = require('./pacienteService');
-const { notificar } = require('../sockets');
+const { emitir } = require('../sockets');
 const AppError = require('../utils/AppError');
 
 const ATRIBUTOS_NUTRI = ['id', 'nome', 'crn', 'email', 'telefone', 'foto'];
@@ -39,31 +39,14 @@ async function perfil(pacienteId) {
   return { ...paciente.toJSON(), proximaConsulta, ultimaConsulta, planoAtivo };
 }
 
-// RF24 / RN18 - o paciente edita apenas os dados pessoais; o nutricionista é notificado
+// RF24 / RN18 - o paciente edita apenas os dados pessoais
 async function atualizarPerfil(pacienteId, dados) {
   const paciente = await buscarPacienteLogado(pacienteId);
   if (dados.email !== paciente.email) await garantirEmailLivre(dados.email, pacienteId);
 
-  const alteracoes = ['nome', 'email', 'telefone']
-    .filter((campo) => dados[campo] !== undefined && (dados[campo] || '') !== (paciente[campo] || ''))
-    .map((campo) => ({
-      pacienteId,
-      nutricionistaId: paciente.nutricionistaId,
-      campo,
-      valorAntigo: paciente[campo] || '',
-      valorNovo: dados[campo] || '',
-    }));
-
-  if (alteracoes.length) {
-    await sequelize.transaction(async (transaction) => {
-      await paciente.update(
-        { nome: dados.nome, email: dados.email, telefone: dados.telefone ?? paciente.telefone },
-        { transaction }
-      );
-      await AlteracaoPerfil.bulkCreate(alteracoes, { transaction });
-    });
-    notificar('nutricionista', paciente.nutricionistaId, 'notificacao', { tipo: 'alteracao-perfil', pacienteId });
-  }
+  await paciente.update({ nome: dados.nome, email: dados.email, telefone: dados.telefone ?? paciente.telefone });
+  // só atualiza as telas abertas do nutricionista (sem aviso)
+  emitir('nutricionista', paciente.nutricionistaId, 'paciente:atualizado', { pacienteId });
   return perfil(pacienteId);
 }
 
@@ -216,45 +199,24 @@ async function evolucao(pacienteId) {
   };
 }
 
-async function registrarPeso(pacienteId, dados) {
-  await buscarPacienteLogado(pacienteId);
-  const dia = dados.data || hoje();
-  if (dia > hoje()) throw new AppError('Não é possível registrar peso em uma data futura', 422);
-  const paciente = await Paciente.findByPk(pacienteId);
-  // pelo app o paciente registra só o peso; medidas corporais ficam com o nutricionista (RN18)
-  await sequelize.transaction((t) => registrarPesagem(pacienteId, { data: dia, pesoKg: dados.pesoKg }, 'paciente', t));
-  notificar('nutricionista', paciente.nutricionistaId, 'paciente:peso', { pacienteId });
-  return evolucao(pacienteId);
-}
-
-/** Cria o pedido de nova senha (se ainda não houver um pendente) e avisa o nutricionista. */
-async function criarPedidoSenha(paciente) {
-  const pendente = await SolicitacaoSenha.findOne({ where: { pacienteId: paciente.id, status: 'pendente' } });
-  if (pendente) return false;
-  await SolicitacaoSenha.create({ pacienteId: paciente.id, nutricionistaId: paciente.nutricionistaId });
-  notificar('nutricionista', paciente.nutricionistaId, 'notificacao', { tipo: 'pedido-senha', pacienteId: paciente.id });
-  return true;
-}
-
-// Paciente esqueceu a senha: o pedido vai para o nutricionista aprovar (RN09)
-async function solicitarNovaSenha({ email }) {
-  const paciente = await Paciente.findOne({ where: { email } });
-  // Resposta é sempre genérica para não revelar quais e-mails existem
-  if (!paciente || !paciente.ativo) return;
-  await criarPedidoSenha(paciente);
-}
-
-// RN09 - logado, o paciente também não troca a senha sozinho: pede ao nutricionista
-async function pedirNovaSenha(pacienteId) {
+// RF26 / RN21 - o paciente atualiza o próprio peso e/ou altura
+async function atualizarMedidas(pacienteId, { data, pesoKg, alturaCm }) {
   const paciente = await buscarPacienteLogado(pacienteId);
-  const criado = await criarPedidoSenha(paciente);
-  return { jaPendente: !criado };
+  const dia = data || hoje();
+  if (dia > hoje()) throw new AppError('Não é possível registrar medidas em uma data futura', 422);
+
+  await sequelize.transaction(async (t) => {
+    // a pesagem entra no histórico de evolução (medidas corporais continuam com o nutricionista)
+    if (pesoKg !== undefined) await registrarPesagem(pacienteId, { data: dia, pesoKg }, 'paciente', t);
+    if (alturaCm !== undefined) await paciente.update({ alturaCm }, { transaction: t });
+  });
+  emitir('nutricionista', paciente.nutricionistaId, 'paciente:atualizado', { pacienteId });
+  return evolucao(pacienteId);
 }
 
 module.exports = {
   perfil,
   atualizarPerfil,
-  pedirNovaSenha,
   atualizarFoto,
   atualizarPreferencias,
   planoDoDia,
@@ -263,6 +225,5 @@ module.exports = {
   escolherSubstituto,
   consultas,
   evolucao,
-  registrarPeso,
-  solicitarNovaSenha,
+  atualizarMedidas,
 };

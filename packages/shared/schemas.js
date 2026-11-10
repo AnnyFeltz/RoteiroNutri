@@ -53,6 +53,17 @@ const redefinirSenhaSchema = z.object({
   novaSenha: senhaSchema,
 });
 
+// RF03 / RN09 - Paciente redefine a senha no app com o código recebido por e-mail
+const redefinirSenhaPacienteSchema = z.object({
+  email: emailSchema,
+  codigo: z
+    .string({ required_error: 'Informe o código' })
+    .trim()
+    .transform((v) => v.toUpperCase())
+    .pipe(z.string().length(8, 'O código tem 8 caracteres')),
+  novaSenha: senhaSchema,
+});
+
 const alterarSenhaSchema = z.object({
   senhaAtual: z.string().min(1, 'Informe a senha atual'),
   novaSenha: senhaSchema,
@@ -157,6 +168,15 @@ const evolucaoSchema = z.object({
   massaMagraPct: percentualOpcional,
 });
 
+// Paciente atualiza as próprias medidas (peso e/ou altura) pelo app
+const medidasPacienteSchema = z
+  .object({
+    data: dataSchema.optional(),
+    pesoKg: z.coerce.number().min(20, 'Peso inválido').max(400, 'Peso inválido').optional(),
+    alturaCm: z.coerce.number().min(50, 'Altura inválida').max(250, 'Altura inválida').optional(),
+  })
+  .refine((d) => d.pesoKg !== undefined || d.alturaCm !== undefined, { message: 'Informe o peso ou a altura' });
+
 // RF20 / RF25 - Registrar consumo
 const consumoSchema = z.object({
   data: dataSchema.optional(),
@@ -179,6 +199,7 @@ module.exports = {
   loginSchema,
   solicitarRecuperacaoSenhaSchema,
   redefinirSenhaSchema,
+  redefinirSenhaPacienteSchema,
   alterarSenhaSchema,
   cadastrarPacienteSchema,
   atualizarPacienteSchema,
@@ -189,6 +210,7 @@ module.exports = {
   consultaSchema,
   atualizarConsultaSchema,
   evolucaoSchema,
+  medidasPacienteSchema,
   consumoSchema,
   substituicaoSchema,
 };

@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Camera, KeyRound, Trash2 } from 'lucide-react'
 import { atualizarNutricionistaSchema, alterarSenhaSchema } from '@RoteiroNutri/shared'
-import { Avatar, Button, Card, Field, Input, PasswordInput, Switch } from '../components/ui'
+import { Avatar, Button, Card, Field, Input, PasswordInput } from '../components/ui'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { validar } from '../lib/validacao'
@@ -20,7 +20,6 @@ export default function Configuracoes() {
   const [senhas, setSenhas] = useState({ senhaAtual: '', novaSenha: '', confirmar: '' })
   const [errosPerfil, setErrosPerfil] = useState({})
   const [errosSenha, setErrosSenha] = useState({})
-  const avisos = nutricionista.preferencias?.avisosTempoReal !== false
 
   const salvarPerfil = useMutation({
     mutationFn: (dados) => api('/nutricionista/perfil', { method: 'PUT', body: dados }),
@@ -59,15 +58,6 @@ export default function Configuracoes() {
       toast.error(erro.message)
     }
   }
-
-  const salvarPreferencia = useMutation({
-    mutationFn: (prefs) => api('/nutricionista/preferencias', { method: 'PUT', body: prefs }),
-    onSuccess: (preferencias) => {
-      setNutricionista({ ...nutricionista, preferencias })
-      toast.success('Preferência salva')
-    },
-    onError: (e) => toast.error(e.message),
-  })
 
   const enviarPerfil = () => {
     const dados = validar(atualizarNutricionistaSchema, perfil, setErrosPerfil)
@@ -157,16 +147,6 @@ export default function Configuracoes() {
         </div>
       </Card>
 
-      <Card className="card-amplo pilha-lg">
-        <h2 className="titulo-card">Notificações</h2>
-        <div className="linha entre" style={{ gap: 16 }}>
-          <div>
-            <p className="texto-medio">Avisos em tempo real</p>
-            <p className="texto-pequeno texto-suave">Mostrar um aviso na tela quando um paciente pedir nova senha ou alterar o perfil pelo app.</p>
-          </div>
-          <Switch label="Avisos em tempo real" checked={avisos} disabled={salvarPreferencia.isPending} onChange={(v) => salvarPreferencia.mutate({ avisosTempoReal: v })} />
-        </div>
-      </Card>
     </div>
   )
 }

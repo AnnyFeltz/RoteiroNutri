@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { ArrowLeft, Plus, ChevronRight, Trash2, ClipboardList, KeyRound, Pencil, FileDown, History } from 'lucide-react'
+import { ArrowLeft, Plus, ChevronRight, Trash2, ClipboardList, Pencil, FileDown, History } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import {
   OBJETIVO_LABEL, imc, classificacaoImc, macroGramas, totaisRefeicao, totaisPlano, calcularAlimento, iconeAlimento,
@@ -11,7 +11,6 @@ import {
 import {
   Avatar, Badge, Button, Card, Carregando, ConfirmDialog, ErroCarregamento, Field, Input, Modal, Select, Stat, Tabs, Textarea,
 } from '../components/ui'
-import { SenhaGeradaModal } from '../components/SenhaGeradaModal'
 import { api } from '../lib/api'
 import { dataBR, dataHoraBR, isoLocal, kg, objetivoLabel, sinal } from '../lib/format'
 import { validar } from '../lib/validacao'
@@ -32,8 +31,6 @@ const EIXO = { fontSize: 12, fill: 'var(--texto-suave)' }
 export default function PacienteDetalhe() {
   const { id } = useParams()
   const [aba, setAba] = useState('resumo')
-  const [novaSenha, setNovaSenha] = useState(null)
-  const [confirmarSenha, setConfirmarSenha] = useState(false)
   const queryClient = useQueryClient()
 
   const { data: p, isLoading, error, refetch } = useQuery({
@@ -48,15 +45,6 @@ export default function PacienteDetalhe() {
       queryClient.invalidateQueries({ queryKey: ['pacientes'], exact: false })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Dados do paciente atualizados')
-    },
-    onError: (e) => toast.error(e.message),
-  })
-
-  const gerarSenha = useMutation({
-    mutationFn: () => api(`/pacientes/${id}/nova-senha`, { method: 'POST' }),
-    onSuccess: (r) => {
-      setConfirmarSenha(false)
-      setNovaSenha({ email: r.email, senha: r.novaSenha, emailEnviado: r.emailEnviado })
     },
     onError: (e) => toast.error(e.message),
   })
@@ -98,9 +86,6 @@ export default function PacienteDetalhe() {
           </div>
         </div>
         <div className="acoes">
-          <Button variant="outline" onClick={() => setConfirmarSenha(true)} title="Gerar nova senha de acesso ao app">
-            <KeyRound /> Nova senha
-          </Button>
           <Link to={`/nutri/pacientes/${p.id}/ficha`}>
             <Button variant="outline">
               <ClipboardList /> Ficha médica/nutricional
@@ -125,16 +110,6 @@ export default function PacienteDetalhe() {
       {aba === 'evolucao' && <EvolucaoTab p={p} />}
       {aba === 'consultas' && <ConsultasTab p={p} />}
 
-      <ConfirmDialog
-        open={confirmarSenha}
-        onClose={() => setConfirmarSenha(false)}
-        onConfirm={() => gerarSenha.mutate()}
-        loading={gerarSenha.isPending}
-        title="Gerar nova senha?"
-        description={`Uma nova senha de acesso ao app será gerada para ${p.nome}. A senha atual deixará de funcionar.`}
-        confirmText="Gerar nova senha"
-      />
-      <SenhaGeradaModal dados={novaSenha} onClose={() => setNovaSenha(null)} titulo="Nova senha gerada" />
     </div>
   )
 }
