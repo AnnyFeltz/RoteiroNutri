@@ -1,6 +1,7 @@
 import { Platform } from 'react-native'
 import * as Print from 'expo-print'
 import * as Sharing from 'expo-sharing'
+import { File, Paths } from 'expo-file-system'
 import { imc, classificacaoImc, calcularAlimento, totaisRefeicao } from '@RoteiroNutri/shared'
 import { dataBR, objetivoLabel, num, sinal } from './formato'
 
@@ -148,10 +149,15 @@ export async function exportarFichaPaciente(dados) {
     setTimeout(() => janela.print(), 300)
     return
   }
-  const { uri } = await Print.printToFileAsync({ html })
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: 'Minha ficha nutricional' })
-  } else {
+  const { uri, base64 } = await Print.printToFileAsync({ html, base64: true })
+  if (!(await Sharing.isAvailableAsync())) {
     await Print.printAsync({ uri })
+    return
   }
+  // no Android (Expo Go) o expo-sharing não pode ler a pasta onde o expo-print grava;
+  // regravamos o PDF no cache do próprio app, que ele pode compartilhar
+  const arquivo = new File(Paths.cache, 'ficha-nutricional.pdf')
+  if (arquivo.exists) arquivo.delete()
+  await arquivo.write(base64, { encoding: 'base64' })
+  await Sharing.shareAsync(arquivo.uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: 'Minha ficha nutricional' })
 }
