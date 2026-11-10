@@ -52,6 +52,13 @@ Senha de todos: `demo1234`
 
 As datas são relativas ao dia em que o seed roda. Para remover: `npm run db:seed:undo:demo`.
 
+### Adesão para os gráficos (`db:seed:adesao`)
+
+Marca refeições como consumidas nos últimos 60 dias (até ontem) para **todos** os pacientes ativos com plano
+ativo, inclusive os que você cadastrou. Cada paciente recebe um perfil (ótima, boa, regular ou baixa adesão),
+com fins de semana um pouco piores. Pode rodar de novo quando os gráficos ficarem vazios: dias que já têm
+registro não são duplicados. Para outro período: `ADESAO_DIAS=90 npm run db:seed:adesao`.
+
 ## Modelo de dados
 
 Segue o modelo relacional do TCC:
