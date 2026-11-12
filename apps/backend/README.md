@@ -52,6 +52,20 @@ Senha de todos: `demo1234`
 
 As datas são relativas ao dia em que o seed roda. Para remover: `npm run db:seed:undo:demo`.
 
+### Testes funcionais (`test:funcional`)
+
+Roteiro que percorre os requisitos pela API como um usuário faria (27 casos: cadastro e login, senha
+inicial por e-mail, recuperação de senha por código, planos e versões, substitutos, agenda sem conflito,
+consumo, medidas, desativação e reativação). Com o banco e a TACO prontos:
+
+```bash
+SMTP_HOST= node src/server.js > /tmp/api.log 2>&1 &   # API sem SMTP: os e-mails vão para o log
+npm run test:funcional -- /tmp/api.log
+```
+
+Os dados criados usam e-mails `@teste.local` e são apagados no fim. Os testes unitários dos cálculos
+continuam em `npm test`.
+
 ### Adesão para os gráficos (`db:seed:adesao`)
 
 Marca refeições como consumidas nos últimos 60 dias (até ontem) para **todos** os pacientes ativos com plano
