@@ -131,50 +131,54 @@ const somar = (d, n) => { const [a, m, dd] = d.split('-').map(Number); return ne
     r.status === 200 && itemDepois.substitutoEscolhidoId === item.substitutos[0].id, r.status);
   r = await req('PUT', `/app/refeicoes/${cafe.id}/consumo`, tp, { consumida: true });
   const dash = await req('GET', `/pacientes/${pac.id}`, tn);
-  caso('CT19', 'RF25 / RF20 / RN19', 'Paciente marca o café da manhã como consumido', 'Registro salvo e visível para o nutricionista',
+  caso('CT19', 'RF25 / RN19', 'Paciente marca o café da manhã como consumido', 'Registro salvo e visível para o nutricionista',
     r.status === 200, `${r.status}; ${JSON.stringify(dash.data?.adesao ?? dash.data?.adesaoHoje ?? '').slice(0, 60)}`);
 
-  // CT20 - medidas pelo paciente
+  r = await req('GET', '/nutricionista/dashboard', tn);
+  caso('CT20', 'RF20 / RN19', 'Nutricionista abre o dashboard depois do registro de consumo', 'Taxa de adesão dos pacientes calculada',
+    r.status === 200 && r.data?.taxaAdesao > 0, `${r.status}; taxa ${r.data?.taxaAdesao}%`);
+
+  // CT21 - medidas pelo paciente
   r = await req('POST', '/app/evolucao', tp, { pesoKg: 69.2, alturaCm: 166 });
   const ficha = await req('GET', `/pacientes/${pac.id}`, tn);
   const fp = ficha.data?.paciente || ficha.data;
-  caso('CT20', 'RF26 / RN21', 'Paciente atualiza peso e altura pelo app', 'Valores novos aparecem para o nutricionista',
+  caso('CT21', 'RF26 / RN21', 'Paciente atualiza peso e altura pelo app', 'Valores novos aparecem para o nutricionista',
     r.status === 201 && fp.pesoAtualKg === 69.2 && fp.alturaCm === 166, `peso ${fp.pesoAtualKg} kg, altura ${fp.alturaCm} cm`);
 
-  // CT21 - restrição de edição
+  // CT22 - restrição de edição
   r = await req('PUT', '/app/perfil', tp, { nome: 'Paciente Teste', email: emailPac, telefone: '(41) 90000-0000', objetivo: 'hipertrofia', alergias: 'nenhuma' });
   const f2 = (await req('GET', `/pacientes/${pac.id}`, tn)).data;
   const p2 = f2.paciente || f2;
-  caso('CT21', 'RF24 / RN18', 'Paciente edita o perfil tentando mudar também objetivo e alergias', 'Só os dados pessoais mudam',
+  caso('CT22', 'RF24 / RN18', 'Paciente edita o perfil tentando mudar também objetivo e alergias', 'Só os dados pessoais mudam',
     r.status === 200 && p2.telefone === '(41) 90000-0000' && p2.objetivo === 'emagrecimento' && !p2.alergias, `telefone ${p2.telefone}; objetivo ${p2.objetivo}`);
 
-  // CT22-24 - recuperação de senha do paciente
+  // CT23-26 - recuperação de senha do paciente
   r = await req('POST', '/auth/pacientes/solicitar-senha', null, { email: emailPac });
   const codigo = (ultimoEmail(emailPac).match(/\b[A-Z2-9]{8}\b/g) || []).pop();
-  caso('CT22', 'RF03 / RN09', 'Paciente pede a redefinição de senha', 'Código de 8 caracteres enviado ao e-mail cadastrado', r.status === 200 && codigo, codigo ? 'código recebido' : 'sem código');
+  caso('CT23', 'RF03 / RN09', 'Paciente pede a redefinição de senha', 'Código de 8 caracteres enviado ao e-mail cadastrado', r.status === 200 && codigo, codigo ? 'código recebido' : 'sem código');
   r = await req('POST', '/auth/pacientes/redefinir-senha', null, { email: emailPac, codigo: 'AAAAAAAA', novaSenha: 'nova1234' });
-  caso('CT23', 'RN09', 'Redefinir com código errado', 'Redefinição recusada', r.status >= 400, `${r.status} - ${r.data?.erro}`);
+  caso('CT24', 'RN09', 'Redefinir com código errado', 'Redefinição recusada', r.status >= 400, `${r.status} - ${r.data?.erro}`);
   r = await req('POST', '/auth/pacientes/redefinir-senha', null, { email: emailPac, codigo, novaSenha: 'nova1234' });
   const loginNovo = await req('POST', '/auth/pacientes/login', null, { email: emailPac, senha: 'nova1234' });
   const loginVelho = await req('POST', '/auth/pacientes/login', null, { email: emailPac, senha: senhaInicial });
-  caso('CT24', 'RF03 / RN09', 'Redefinir com o código correto', 'Nova senha passa a valer e a antiga não',
+  caso('CT25', 'RF03 / RN09', 'Redefinir com o código correto', 'Nova senha passa a valer e a antiga não',
     r.status === 200 && loginNovo.status === 200 && loginVelho.status === 401, `${r.status}; nova ${loginNovo.status}, antiga ${loginVelho.status}`);
   r = await req('POST', '/auth/pacientes/redefinir-senha', null, { email: emailPac, codigo, novaSenha: 'outra123' });
-  caso('CT25', 'RN09', 'Reutilizar o mesmo código', 'Código recusado (uso único)', r.status >= 400, `${r.status} - ${r.data?.erro}`);
+  caso('CT26', 'RN09', 'Reutilizar o mesmo código', 'Código recusado (uso único)', r.status >= 400, `${r.status} - ${r.data?.erro}`);
   tp = loginNovo.data?.token;
 
-  // CT26-27 - desativar e reativar
+  // CT27-28 - desativar e reativar
   r = await req('PATCH', `/pacientes/${pac.id}/desativar`, tn);
   const semAtivo = ((await req('GET', `/pacientes/${pac.id}/planos`, tn)).data || []);
   const ls = (semAtivo.planos || semAtivo).filter((p) => p.ativo).length;
   const loginBloq = await req('POST', '/auth/pacientes/login', null, { email: emailPac, senha: 'nova1234' });
-  caso('CT26', 'RF06 / RN04', 'Desativar paciente com plano ativo', 'Plano suspenso e acesso ao app bloqueado',
+  caso('CT27', 'RF06 / RN04', 'Desativar paciente com plano ativo', 'Plano suspenso e acesso ao app bloqueado',
     r.status === 200 && ls === 0 && loginBloq.status === 403, `${ls} planos ativos; login ${loginBloq.status}`);
   r = await req('PATCH', `/pacientes/${pac.id}/reativar`, tn);
   const volta = ((await req('GET', `/pacientes/${pac.id}/planos`, tn)).data || []);
   const ativo = (volta.planos || volta).find((p) => p.ativo);
   const loginOk = await req('POST', '/auth/pacientes/login', null, { email: emailPac, senha: 'nova1234' });
-  caso('CT27', 'RF29 / RN04', 'Reativar o paciente', 'O plano suspenso volta a ser o ativo e o login é liberado',
+  caso('CT28', 'RF29 / RN04', 'Reativar o paciente', 'O plano suspenso volta a ser o ativo e o login é liberado',
     r.status === 200 && ativo?.versao === 2 && loginOk.status === 200, `ativo v${ativo?.versao}; login ${loginOk.status}`);
 
   console.log(`\n${resultados.filter((x) => x.ok).length}/${resultados.length} passaram`);

@@ -54,7 +54,7 @@ As datas são relativas ao dia em que o seed roda. Para remover: `npm run db:see
 
 ### Testes funcionais (`test:funcional`)
 
-Roteiro que percorre os requisitos pela API como um usuário faria (27 casos: cadastro e login, senha
+Roteiro que percorre os requisitos pela API como um usuário faria (28 casos: cadastro e login, senha
 inicial por e-mail, recuperação de senha por código, planos e versões, substitutos, agenda sem conflito,
 consumo, medidas, desativação e reativação). Com o banco e a TACO prontos:
 
